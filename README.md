@@ -156,3 +156,20 @@ indicatorChar: 'ℹ'  // Information symbol (default)
 
 **Enjoy a cleaner, more organized Umbraco editing experience!** 🎉
 
+## Screenshots
+
+## Before NeatTip
+
+https://raw.githubusercontent.com/phases/Phases.Umbraco.NeatTip/refs/heads/main/Phases.Umbraco.NeatTip/Screenshots/before-neat-tip.PNG
+
+## After NeatTip
+
+https://raw.githubusercontent.com/phases/Phases.Umbraco.NeatTip/refs/heads/main/Phases.Umbraco.NeatTip/Screenshots/after-neat-tip.PNG
+
+## Moved Tooltip
+
+https://raw.githubusercontent.com/phases/Phases.Umbraco.NeatTip/refs/heads/main/Phases.Umbraco.NeatTip/Screenshots/moved-tooltip.PNG
+
+## NeatTip Icon
+
+https://raw.githubusercontent.com/phases/Phases.Umbraco.NeatTip/refs/heads/main/Phases.Umbraco.NeatTip/Screenshots/neat-tip-icon.PNG
