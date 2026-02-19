@@ -1,0 +1,19 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="64" cy="64" r="60" fill="#3544B1" stroke="#2A3690" stroke-width="2"/>
+  
+  <!-- Information icon (i) -->
+  <g transform="translate(64, 64)">
+    <!-- Dot -->
+    <circle cx="0" cy="-20" r="6" fill="#FFFFFF"/>
+    <!-- Line -->
+    <rect x="-3" y="-10" width="6" height="32" rx="3" fill="#FFFFFF"/>
+  </g>
+  
+  <!-- Tooltip box outline (subtle) -->
+  <g transform="translate(80, 45)" opacity="0.3">
+    <rect x="0" y="0" width="30" height="20" rx="4" fill="none" stroke="#FFFFFF" stroke-width="2"/>
+    <path d="M 8 20 L 12 25 L 16 20 Z" fill="#FFFFFF"/>
+  </g>
+</svg>
+

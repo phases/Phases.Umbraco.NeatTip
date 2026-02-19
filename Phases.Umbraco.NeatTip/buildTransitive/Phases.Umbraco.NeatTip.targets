@@ -1,0 +1,39 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<PropertyGroup>
+		<!-- Fixed path to point to contentFiles in the NuGet package -->
+		<PhasesUmbracoNeatTipContentFilesPath>$(MSBuildThisFileDirectory)..\contentFiles\any\any\App_Plugins\Phases.Umbraco.NeatTip\**\*.*</PhasesUmbracoNeatTipContentFilesPath>
+	</PropertyGroup>
+
+	<Target Name="CopyPhasesUmbracoNeatTipAssets" BeforeTargets="BeforeBuild">
+		<ItemGroup>
+			<PhasesUmbracoNeatTipContentFiles Include="$(PhasesUmbracoNeatTipContentFilesPath)" />
+		</ItemGroup>
+		<Message Text="Copying Phases.Umbraco.NeatTip files from: $(PhasesUmbracoNeatTipContentFilesPath) - #@(PhasesUmbracoNeatTipContentFiles->Count()) files" Importance="high" />
+		<Copy SourceFiles="@(PhasesUmbracoNeatTipContentFiles)"
+			  DestinationFiles="@(PhasesUmbracoNeatTipContentFiles->'$(MSBuildProjectDirectory)\App_Plugins\Phases.Umbraco.NeatTip\%(RecursiveDir)%(Filename)%(Extension)')"
+			  SkipUnchangedFiles="true" />
+	</Target>
+
+	<Target Name="ClearPhasesUmbracoNeatTipAssets" BeforeTargets="Clean">
+		<ItemGroup>
+			<PhasesUmbracoNeatTipDir Include="$(MSBuildProjectDirectory)\App_Plugins\Phases.Umbraco.NeatTip\" />
+		</ItemGroup>
+		<Message Text="Clearing old Phases.Umbraco.NeatTip data" Importance="high" />
+		<RemoveDir Directories="@(PhasesUmbracoNeatTipDir)" />
+	</Target>
+
+	<!-- Include App_Plugins in publish output so they are available when Debug=false (Release) -->
+	<Target Name="IncludePhasesUmbracoNeatTipInPublish" BeforeTargets="ComputeFilesToPublish">
+		<ItemGroup>
+			<PhasesUmbracoNeatTipPublishFiles Include="$(PhasesUmbracoNeatTipContentFilesPath)" />
+		</ItemGroup>
+		<ItemGroup Condition="'@(PhasesUmbracoNeatTipPublishFiles)' != ''">
+			<ResolvedFileToPublish Include="@(PhasesUmbracoNeatTipPublishFiles)" Exclude="@(ResolvedFileToPublish)">
+				<RelativePath>App_Plugins\Phases.Umbraco.NeatTip\%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+				<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+				<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+			</ResolvedFileToPublish>
+		</ItemGroup>
+		<Message Text="Including Phases.Umbraco.NeatTip App_Plugins in publish (#@(PhasesUmbracoNeatTipPublishFiles->Count()) files)" Importance="high" />
+	</Target>
+</Project>

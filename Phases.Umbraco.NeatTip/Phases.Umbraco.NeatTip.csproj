@@ -1,0 +1,60 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<ContentTargetFolders>.</ContentTargetFolders>
+
+		<!-- REQUIRED for Debug=false -->
+		<IncludeStaticWebAssets>true</IncludeStaticWebAssets>
+
+		<!-- NuGet packaging -->
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<IsPackable>true</IsPackable>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<!-- ===== YOUR PACKAGE METADATA (UNCHANGED) ===== -->
+		<PackageId>Phases.Umbraco.NeatTip</PackageId>
+		<Product>Phases.Umbraco.NeatTip</Product>
+		<Title>Phases.Umbraco.NeatTip</Title>
+		<Description>NeatTip is an Umbraco package that automatically converts long property descriptions into compact, interactive tooltips. Instead of cluttering your content editing interface with lengthy descriptions, NeatTip displays a small icon next to property labels. Click or hover the icon to view the full description in a beautifully styled tooltip.
+		</Description>
+		<PackageTags>umbraco plugin package;umbraco-marketplace;umbraco;umbraco-v10; umbraco-v11;umbraco-v12;umbraco-v13</PackageTags>
+		<Version>1.0.1.13</Version>
+		<Authors>midhun_roy</Authors>
+		<Company>Phases</Company>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageIcon>icon.png</PackageIcon>
+	</PropertyGroup>
+
+	<!-- Umbraco dependencies -->
+	<ItemGroup>
+		<PackageReference Include="Umbraco.Cms.Web.Website" Version="13.13.0" />
+		<PackageReference Include="Umbraco.Cms.Web.BackOffice" Version="13.13.0" />
+	</ItemGroup>
+
+	<!-- 🔑 CONTENT FILES - App_Plugins must be in contentFiles to be copied to consuming project -->
+	<ItemGroup>
+		<Content Include="App_Plugins\Phases.Umbraco.NeatTip\**\*.*" Pack="true" PackagePath="contentFiles\any\any\App_Plugins\Phases.Umbraco.NeatTip" />
+	</ItemGroup>
+
+	<!-- buildTransitive (unchanged) -->
+	<ItemGroup>
+		<None Include="buildTransitive\**" Pack="true" PackagePath="buildTransitive" />
+	</ItemGroup>
+
+	<!-- NuGet extras -->
+	<ItemGroup>
+		<None Update="icon.png">
+			<Pack>true</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+		<None Update="README.md">
+			<Pack>true</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
+
+</Project>

@@ -1,0 +1,13 @@
+{
+  "name": "Phases.Umbraco.NeatTip",
+  "version": "1.5.2",
+  "allowPackageTelemetry": false,
+  "javascript": [
+    "/App_Plugins/Phases.Umbraco.NeatTip/js/neatTipController.js"
+  ],
+  "css": [
+    "/App_Plugins/Phases.Umbraco.NeatTip/css/style.neattip.css"
+  ],
+  "bundleOptions": "None"
+}
+
