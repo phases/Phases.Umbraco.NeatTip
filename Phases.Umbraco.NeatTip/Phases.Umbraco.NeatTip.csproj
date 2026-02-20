@@ -23,10 +23,12 @@
 		</Description>
 		<PackageTags>umbraco plugin package;umbraco-marketplace;umbraco;umbraco-v10; umbraco-v11;umbraco-v12;umbraco-v13</PackageTags>
 		<Version>1.0.1.13</Version>
-		<Authors>midhun_roy</Authors>
+		<Authors>midhun_roy,Afreed-cp</Authors>
 		<Company>Phases</Company>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
+		<PackageProjectUrl>https://github.com/phases/Phases.Umbraco.NeatTip</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/phases/Phases.Umbraco.NeatTip</RepositoryUrl>
 	</PropertyGroup>
 
 	<!-- Umbraco dependencies -->
@@ -43,6 +45,12 @@
 	<!-- buildTransitive (unchanged) -->
 	<ItemGroup>
 		<None Include="buildTransitive\**" Pack="true" PackagePath="buildTransitive" />
+	</ItemGroup>
+	<ItemGroup>
+	  <None Include="..\README.md">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
 	</ItemGroup>
 
 	<!-- NuGet extras -->
