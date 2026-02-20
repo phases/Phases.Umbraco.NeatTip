@@ -160,16 +160,16 @@ indicatorChar: 'ℹ'  // Information symbol (default)
 
 ## Before NeatTip
 
-![App Screenshot] (https://raw.githubusercontent.com/phases/Phases.Umbraco.NeatTip/refs/heads/main/Phases.Umbraco.NeatTip/Screenshots/before-neat-tip.PNG)
+![App Screenshot](https://raw.githubusercontent.com/phases/Phases.Umbraco.NeatTip/refs/heads/main/Phases.Umbraco.NeatTip/Screenshots/before-neat-tip.PNG)
 
 ## After NeatTip
 
-![App Screenshot] (https://raw.githubusercontent.com/phases/Phases.Umbraco.NeatTip/refs/heads/main/Phases.Umbraco.NeatTip/Screenshots/after-neat-tip.PNG)
+![App Screenshot](https://raw.githubusercontent.com/phases/Phases.Umbraco.NeatTip/refs/heads/main/Phases.Umbraco.NeatTip/Screenshots/after-neat-tip.PNG)
 
 ## Moved Tooltip
 
-![App Screenshot] (https://raw.githubusercontent.com/phases/Phases.Umbraco.NeatTip/refs/heads/main/Phases.Umbraco.NeatTip/Screenshots/moved-tooltip.PNG)
+![App Screenshot](https://raw.githubusercontent.com/phases/Phases.Umbraco.NeatTip/refs/heads/main/Phases.Umbraco.NeatTip/Screenshots/moved-tooltip.PNG)
 
 ## NeatTip Icon
 
-![App Screenshot] (https://raw.githubusercontent.com/phases/Phases.Umbraco.NeatTip/refs/heads/main/Phases.Umbraco.NeatTip/Screenshots/neat-tip-icon.PNG)
+![App Screenshot](https://raw.githubusercontent.com/phases/Phases.Umbraco.NeatTip/refs/heads/main/Phases.Umbraco.NeatTip/Screenshots/neat-tip-icon.PNG)
