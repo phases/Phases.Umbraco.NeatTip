@@ -168,7 +168,7 @@ indicatorChar: 'ℹ'  // Information symbol (default)
 
 ## Moved Tooltip
 
-![App Screenshot](https://raw.githubusercontent.com/phases/Phases.Umbraco.NeatTip/refs/heads/main/Phases.Umbraco.NeatTip/Screenshots/moved-tooltip.PNG)
+![App Screenshot](https://raw.githubusercontent.com/phases/Phases.Umbraco.NeatTip/refs/heads/main/Phases.Umbraco.NeatTip/Screenshots/move-neat-tip-position.PNG)
 
 ## NeatTip Icon
 
