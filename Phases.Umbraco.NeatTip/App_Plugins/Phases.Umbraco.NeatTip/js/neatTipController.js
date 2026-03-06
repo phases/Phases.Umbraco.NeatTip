@@ -131,6 +131,7 @@
     var mutationObserver = null;
     var isTooltipToggled = false; // Track if tooltip is toggled/pinned
     var scrollHandler = null; // Store scroll handler for cleanup
+    var navigationHandlerSetup = false; // Ensure navigation handlers are only registered once
     var isDragging = false; // Track if tooltip is being dragged
     var dragOffset = { x: 0, y: 0 }; // Store drag offset
     var customPosition = null; // Store custom position when dragged
@@ -202,6 +203,14 @@
             // Also listen to resize (tooltip position might be invalid after resize)
             window.addEventListener('resize', scrollHandler, true);
         }
+
+        // Close tooltip on backoffice navigation (e.g. when switching nodes)
+        if (!navigationHandlerSetup) {
+            navigationHandlerSetup = true;
+            window.addEventListener('hashchange', function () {
+                hideTooltip(true);
+            });
+        }
     }
 
     // Show tooltip
@@ -263,8 +272,8 @@
             // Show with fade
             globalTooltip.addClass('neattip-visible');
 
-            // Update active indicator
-            activeIndicator = indicator;
+            // Update active indicator (store DOM element so click toggle comparison works)
+            activeIndicator = indicator[0];
 
             // Add active class to indicator if toggled
             if (isTooltipToggled) {
@@ -291,6 +300,12 @@
             globalTooltip.removeClass('neattip-visible');
             globalTooltip.css('pointer-events', 'none');
         }
+
+        // Reset so next open shows in initial position, not last dragged position
+        customPosition = null;
+        angular.element('.neattip-indicator').each(function () {
+            angular.element(this).removeData('neattip-position');
+        });
 
         activeIndicator = null;
         isTooltipToggled = false;
