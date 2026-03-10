@@ -22,8 +22,8 @@
 		<Description>NeatTip is an Umbraco package that automatically converts long property descriptions into compact, interactive tooltips. Instead of cluttering your content editing interface with lengthy descriptions, NeatTip displays a small icon next to property labels. Click or hover the icon to view the full description in a beautifully styled tooltip.
 		</Description>
 		<PackageTags>umbraco plugin package;umbraco-marketplace;umbraco-v13</PackageTags>
-		<Version>1.0.3.13</Version>
-		<Authors>midhun_roy,Afreed-cp</Authors>
+		<Version>1.0.4.13</Version>
+		<Authors>midhun_roy,Afreed-cp,farshadudheen</Authors>
 		<Company>Phases</Company>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>

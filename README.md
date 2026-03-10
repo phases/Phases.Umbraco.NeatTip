@@ -116,6 +116,7 @@ indicatorChar: 'ℹ'  // Information symbol (default)
 
 ---
 
+
 ## 🐛 Troubleshooting
 
 ### Icons Not Appearing
