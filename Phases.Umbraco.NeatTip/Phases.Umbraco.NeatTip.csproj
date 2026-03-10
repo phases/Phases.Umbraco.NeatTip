@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
@@ -22,7 +22,7 @@
 		<Description>NeatTip is an Umbraco package that automatically converts long property descriptions into compact, interactive tooltips. Instead of cluttering your content editing interface with lengthy descriptions, NeatTip displays a small icon next to property labels. Click or hover the icon to view the full description in a beautifully styled tooltip.
 		</Description>
 		<PackageTags>umbraco plugin package;umbraco-marketplace;umbraco-v13</PackageTags>
-		<Version>1.0.4.13</Version>
+		<Version>1.0.5.13</Version>
 		<Authors>midhun_roy,Afreed-cp,farshadudheen</Authors>
 		<Company>Phases</Company>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
@@ -38,9 +38,10 @@
 		<PackageReference Include="Umbraco.Cms.Web.BackOffice" Version="13.13.0" />
 	</ItemGroup>
 
-	<!-- 🔑 CONTENT FILES - App_Plugins must be in contentFiles to be copied to consuming project -->
+	<!-- Plugin assets: packed under 'content' (NOT contentFiles) to avoid NETSDK1152 duplicate publish
+	     in Umbraco Cloud / SDK publish. buildTransitive target copies these into the project. -->
 	<ItemGroup>
-		<Content Include="App_Plugins\Phases.Umbraco.NeatTip\**\*.*" Pack="true" PackagePath="contentFiles\any\any\App_Plugins\Phases.Umbraco.NeatTip" />
+		<Content Include="App_Plugins\Phases.Umbraco.NeatTip\**\*.*" Pack="true" PackagePath="content\App_Plugins\Phases.Umbraco.NeatTip" />
 	</ItemGroup>
 
 	<!-- buildTransitive (unchanged) -->
