@@ -21,14 +21,15 @@
 		<Title>Phases.Umbraco.NeatTip</Title>
 		<Description>NeatTip is an Umbraco package that automatically converts long property descriptions into compact, interactive tooltips. Instead of cluttering your content editing interface with lengthy descriptions, NeatTip displays a small icon next to property labels. Click or hover the icon to view the full description in a beautifully styled tooltip.
 		</Description>
-		<PackageTags>umbraco plugin package;umbraco-marketplace;umbraco;umbraco-v10; umbraco-v11;umbraco-v12;umbraco-v13</PackageTags>
-		<Version>1.0.1.13</Version>
+		<PackageTags>umbraco plugin package;umbraco-marketplace;umbraco-v13</PackageTags>
+		<Version>1.0.3.13</Version>
 		<Authors>midhun_roy,Afreed-cp</Authors>
 		<Company>Phases</Company>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/phases/Phases.Umbraco.NeatTip</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/phases/Phases.Umbraco.NeatTip</RepositoryUrl>
+		<PackageLicenseFile>License.txt</PackageLicenseFile>
 	</PropertyGroup>
 
 	<!-- Umbraco dependencies -->
@@ -58,6 +59,10 @@
 		<None Update="icon.png">
 			<Pack>true</Pack>
 			<PackagePath>\</PackagePath>
+		</None>
+		<None Update="License.txt">
+		  <Pack>True</Pack>
+		  <PackagePath>\</PackagePath>
 		</None>
 		<None Update="README.md">
 			<Pack>true</Pack>
