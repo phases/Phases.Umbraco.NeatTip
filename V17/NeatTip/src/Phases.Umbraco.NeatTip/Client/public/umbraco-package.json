@@ -1,0 +1,14 @@
+{
+  "id": "Phases.Umbraco.NeatTip",
+  "name": "Phases.Umbraco.NeatTip",
+  "version": "1.0.0",
+  "allowTelemetry": true,
+  "extensions": [
+    {
+      "name": "Phases Umbraco Neat Tip Bundle",
+      "alias": "Phases.Umbraco.NeatTip.Bundle",
+      "type": "bundle",
+      "js": "/App_Plugins/PhasesUmbracoNeatTip/phases-umbraco-neat-tip.js"
+    }
+  ]
+}

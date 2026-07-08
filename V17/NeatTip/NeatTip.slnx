@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="src/Phases.Umbraco.NeatTip.Web/Phases.Umbraco.NeatTip.Web.csproj" />
+  <Project Path="src/Phases.Umbraco.NeatTip/Phases.Umbraco.NeatTip.csproj" />
+</Solution>

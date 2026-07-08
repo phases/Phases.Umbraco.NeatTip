@@ -6,3 +6,8 @@
 /Phases.Umbraco.NeatTip/bin
 /Phases.Umbraco.NeatTip/obj
 /Phases.Umbraco.NeatTip/Properties/PublishProfiles
+/V17/NeatTip/.vs
+/V17/NeatTip/src/Phases.Umbraco.NeatTip/bin/Debug/net10.0
+/V17/NeatTip/src/Phases.Umbraco.NeatTip/obj/Debug/net10.0
+/V17/NeatTip/src/Phases.Umbraco.NeatTip/obj
+/V17/NeatTip/src/Phases.Umbraco.NeatTip/Client/node_modules
