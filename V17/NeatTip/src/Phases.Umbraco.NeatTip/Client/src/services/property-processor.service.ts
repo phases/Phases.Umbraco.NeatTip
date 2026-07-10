@@ -7,16 +7,20 @@ import {
   LabelPlacementService,
   markKeepVisible,
   markProcessed,
-  resolvePropertyDescription,
+  syncResolvedDescription,
 } from "./label-placement.service.js";
 import { linkIndicatorToLayout } from "./tooltip-content.service.js";
 import type { TooltipManagerService } from "./tooltip-manager.service.js";
+import type { VariantCultureService } from "./variant-culture.service.js";
 import type { WorkspaceContextService } from "./workspace-context.service.js";
+import { captureOriginalDescription, cultureKey } from "../utils/culture-description.util.js";
+import { helperTextService } from "./helper-text.service.js";
 import {
   isStaleProcessedLayout,
   resetLayoutForReprocessing,
 } from "../utils/layout-reset.util.js";
 import { restoreStoredDescription } from "../utils/flash-description.util.js";
+import { queryLayoutRoot } from "../utils/shadow-dom.util.js";
 
 export class PropertyProcessorService {
   readonly #labelPlacement = new LabelPlacementService();
@@ -24,6 +28,7 @@ export class PropertyProcessorService {
   constructor(
     private readonly workspace: WorkspaceContextService,
     private readonly tooltipManager: TooltipManagerService,
+    private readonly cultureService: VariantCultureService,
   ) {}
 
   process(layout: HTMLElement): void {
@@ -36,15 +41,28 @@ export class PropertyProcessorService {
     }
 
     if (isProcessed(layout)) {
-      if (!isStaleProcessedLayout(layout)) {
-        return;
-      }
+      const cultureContext = this.cultureService.getResolutionContext();
+      const activeCultureKey = cultureKey(cultureContext.activeCulture);
+      const resolvedCultureKey = layout.dataset.neattipResolvedCulture?.trim();
 
-      resetLayoutForReprocessing(layout);
+      if (
+        resolvedCultureKey
+        && activeCultureKey
+        && resolvedCultureKey !== activeCultureKey
+      ) {
+        resetLayoutForReprocessing(layout);
+      } else if (!isStaleProcessedLayout(layout)) {
+        return;
+      } else {
+        resetLayoutForReprocessing(layout);
+      }
     }
 
     try {
-      const description = resolvePropertyDescription(layout);
+      helperTextService.applyToLayout(layout);
+      captureOriginalDescription(layout);
+      const cultureContext = this.cultureService.getResolutionContext();
+      const description = syncResolvedDescription(layout, cultureContext);
 
       if (description && description.length < neattipRuntime.minLength) {
         restoreStoredDescription(layout);
@@ -83,7 +101,8 @@ export class PropertyProcessorService {
 
       linkIndicatorToLayout(indicator, layout);
 
-      this.#attachHandlers(indicator, layout, description);
+      this.#attachHandlers(indicator, layout);
+      layout.dataset.neattipResolvedCulture = cultureKey(cultureContext.activeCulture);
       markProcessed(layout);
     } catch {
       restoreStoredDescription(layout);
@@ -119,12 +138,56 @@ export class PropertyProcessorService {
     return indicator;
   }
 
-  #attachHandlers(indicator: HTMLElement, layout: HTMLElement, description: string): void {
-    const resolveDescription = (): string =>
-      indicator.dataset.neattipMarkdown?.trim()
-      || layout.dataset.neattipStoredDescription?.trim()
-      || resolvePropertyDescription(layout)
-      || description;
+  refreshLayoutDescription(layout: HTMLElement): string {
+    if (!isProcessed(layout)) {
+      return "";
+    }
+
+    helperTextService.applyToLayout(layout);
+    const cultureContext = this.cultureService.getResolutionContext();
+    const description = syncResolvedDescription(layout, cultureContext);
+    const indicator = queryLayoutRoot(layout).querySelector<HTMLElement>("neat-tip-indicator");
+
+    if (indicator) {
+      indicator.dataset.neattipMarkdown = description;
+      indicator.setAttribute(
+        "aria-label",
+        description ? "View property description" : "Add property description",
+      );
+    }
+
+    layout.dataset.neattipResolvedCulture = cultureKey(cultureContext.activeCulture);
+    this.tooltipManager.refreshIfActiveLayout(layout);
+
+    return description;
+  }
+
+  #attachHandlers(indicator: HTMLElement, layout: HTMLElement): void {
+    let isHovering = false;
+    const isNodeInsideIndicator = (target: EventTarget | null): boolean => {
+      if (!(target instanceof Node)) {
+        return false;
+      }
+
+      if (target === indicator || indicator.contains(target)) {
+        return true;
+      }
+
+      const root = target.getRootNode();
+      return root instanceof ShadowRoot && root.host === indicator;
+    };
+
+    const resolveDescription = (): string => {
+      const cultureContext = this.cultureService.getResolutionContext();
+      const description = syncResolvedDescription(layout, cultureContext).trim();
+      if (description) {
+        indicator.dataset.neattipMarkdown = description;
+      } else {
+        delete indicator.dataset.neattipMarkdown;
+      }
+
+      return description;
+    };
 
     indicator.addEventListener("click", (event) => {
       event.preventDefault();
@@ -132,18 +195,36 @@ export class PropertyProcessorService {
       this.tooltipManager.toggle(indicator, resolveDescription());
     });
 
-    indicator.addEventListener("mouseenter", () => {
+    const onHoverEnter = () => {
+      if (isHovering) {
+        return;
+      }
+      isHovering = true;
+
+      if (this.tooltipManager.isEditing()) {
+        return;
+      }
+
       if (this.tooltipManager.isToggled() && !this.tooltipManager.isActiveIndicator(indicator)) {
         return;
       }
 
       this.tooltipManager.cancelScheduledHide();
       this.tooltipManager.show(indicator, resolveDescription(), false);
-    });
+    };
 
-    indicator.addEventListener("mouseleave", () => {
-      this.tooltipManager.scheduleHide();
-    });
+    const onHoverLeave = (event: Event) => {
+      const pointerEvent = event as MouseEvent | PointerEvent;
+      if (isNodeInsideIndicator(pointerEvent.relatedTarget)) {
+        return;
+      }
+
+      isHovering = false;
+      this.tooltipManager.scheduleHide(event);
+    };
+
+    indicator.addEventListener("pointerenter", onHoverEnter);
+    indicator.addEventListener("pointerleave", onHoverLeave);
 
     indicator.addEventListener("keydown", (event) => {
       if (event.key !== "Enter" && event.key !== " ") {

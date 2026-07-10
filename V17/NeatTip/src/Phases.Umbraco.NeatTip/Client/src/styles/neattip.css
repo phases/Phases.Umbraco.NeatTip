@@ -15,13 +15,15 @@ umb-property-layout umb-ufm-render.neattip-keep-visible {
   display: inline-flex;
   align-items: center;
   isolation: isolate;
-  margin-left: 6px;
+  margin-left: 8px;
   vertical-align: middle;
+  line-height: 1;
 }
 
 umb-property-layout neat-tip-indicator,
 umb-property-layout .neattip-indicator {
   flex-shrink: 0;
+  align-self: center;
 }
 
 /* Tooltip */
@@ -32,8 +34,11 @@ umb-property-layout .neattip-indicator {
   opacity: 0;
   transform: translateY(2px) scale(0.985);
   transform-origin: center top;
+  box-sizing: border-box;
+  width: max-content;
+  min-width: 200px;
   max-width: 320px;
-  padding: 12px 12px 8px;
+  padding: 10px 12px 0;
   border: 1px solid var(--uui-color-border-standalone, #dbdbdb);
   border-radius: 8px;
   background: var(--uui-color-surface, #fff);
@@ -86,9 +91,15 @@ umb-property-layout .neattip-indicator {
 
 .neattip-tooltip-header {
   height: 16px;
-  margin: -4px -4px 2px;
+  margin: -2px -4px 0;
   cursor: grab;
   border-radius: 4px 4px 2px 2px;
+  flex-shrink: 0;
+}
+
+.neattip-tooltip-body {
+  min-width: 0;
+  padding-bottom: 2px;
 }
 
 .neattip-tooltip.neattip-dragging .neattip-tooltip-header {
@@ -100,7 +111,7 @@ umb-property-layout .neattip-indicator {
 }
 
 .neattip-tooltip-content {
-  padding: 4px 2px;
+  padding: 4px 0 6px;
   color: inherit;
   letter-spacing: 0.01em;
   overflow-wrap: anywhere;
@@ -119,10 +130,15 @@ umb-property-layout .neattip-indicator {
 
 .neattip-tooltip-editor {
   display: none;
-  margin-top: 6px;
+  margin-top: 4px;
+  padding-bottom: 6px;
 }
 
 .neattip-editor-hidden {
+  display: none !important;
+}
+
+.neattip-actions-hidden {
   display: none !important;
 }
 
@@ -149,60 +165,57 @@ umb-property-layout .neattip-indicator {
 
 .neattip-tooltip-actions {
   display: flex;
-  gap: var(--uui-size-space-2, 6px);
+  gap: var(--uui-size-space-1, 4px);
   justify-content: flex-end;
   align-items: center;
-  margin-top: 8px;
-  min-height: 28px;
+  margin: 8px -12px 0;
+  padding: 8px 12px 10px;
+  border-top: 1px solid var(--uui-color-border, #ebebeb);
+  flex-shrink: 0;
 }
 
-.neattip-more {
+.neattip-inline-actions {
   display: inline-flex;
-  --uui-menu-item-flat-structure: 1;
+  gap: 2px;
   align-items: center;
+  margin-left: auto;
 }
 
-.neattip-more-button {
-  --uui-button-height: 28px;
-  --uui-button-border-radius: var(--uui-border-radius, 3px);
-  --uui-button-padding-left-factor: 1;
-  --uui-button-padding-right-factor: 1;
+.neattip-action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--uui-border-radius, 3px);
+  background: transparent;
+  color: var(--uui-color-text-alt, #6f6f6f);
+  cursor: pointer;
 }
 
-.neattip-more-button:hover {
-  --uui-button-background-color: var(--uui-color-surface-emphasis, #f3f3f3);
+.neattip-action-button:hover {
+  background: var(--uui-color-surface-emphasis, #f3f3f3);
+  color: var(--uui-color-interactive-emphasis, #174f8c);
 }
 
-.neattip-more-button:focus-visible {
+.neattip-action-button:focus-visible {
   outline: 2px solid var(--uui-color-focus, #3550b8);
   outline-offset: 2px;
 }
 
-.neattip-more-popover {
-  min-width: 150px;
-  z-index: 1000000;
+.neattip-action-icon {
+  display: inline-flex;
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
 }
 
-.neattip-more-popover-layout {
-  background: var(--uui-color-surface, #fff);
-  border: 1px solid var(--uui-color-border-standalone, #d8d8d8);
-  border-radius: var(--uui-border-radius, 3px);
-  box-shadow: var(--uui-shadow-depth-3, 0 8px 16px rgba(0, 0, 0, 0.1));
-  overflow: hidden;
-  padding: 2px;
-}
-
-.neattip-more-popover-layout uui-menu-item {
-  --uui-menu-item-padding-left: 8px;
-  --uui-menu-item-padding-right: 8px;
-  --uui-menu-item-padding-top: 6px;
-  --uui-menu-item-padding-bottom: 6px;
-  border-radius: 3px;
-}
-
-.neattip-more-popover-layout uui-menu-item:focus-visible {
-  outline: 2px solid var(--uui-color-focus, #3550b8);
-  outline-offset: -2px;
+.neattip-action-icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .neattip-tooltip.neattip-mode-edit .neattip-tooltip-content {
@@ -292,14 +305,14 @@ umb-property-layout .neattip-indicator {
 .umb-block-grid__block .neattip-indicator,
 .umb-block-list__block neat-tip-indicator,
 .umb-block-grid__block neat-tip-indicator {
-  width: 12px;
-  height: 12px;
-  font-size: 9px;
+  width: 14px;
+  height: 14px;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
   .neattip-tooltip {
+    min-width: min(200px, calc(100vw - 40px));
     max-width: calc(100vw - 40px);
   }
 }
@@ -307,7 +320,14 @@ umb-property-layout .neattip-indicator {
 @media (max-width: 480px) {
   .neattip-tooltip {
     font-size: 12px;
-    padding: 10px 12px 8px;
+    padding: 8px 10px 0;
+  }
+
+  .neattip-tooltip-actions {
+    margin-left: -10px;
+    margin-right: -10px;
+    padding-left: 10px;
+    padding-right: 10px;
   }
 }
 

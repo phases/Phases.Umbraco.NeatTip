@@ -1,4 +1,4 @@
-import { w as e } from "./bundle.manifests-Bi5hYMYD.js";
+import { K as e } from "./bundle.manifests-C2kQPsY2.js";
 export {
   e as manifests
 };

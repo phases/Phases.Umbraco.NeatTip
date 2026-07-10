@@ -7,7 +7,7 @@ import {
 
 /**
  * Tooltip actions gated by NeatTipPermissionsService.
- * Add new values here when introducing additional More-menu actions.
+ * Add new values here when introducing additional tooltip actions.
  */
 export type NeatTipTooltipAction = "copy" | "edit";
 
@@ -92,7 +92,7 @@ export class NeatTipPermissionsService extends UmbControllerBase {
   }
 
   /**
-   * Returns actions the current user may see in the More menu.
+   * Returns actions the current user may see in the tooltip.
    * Prefer this over disabling items — unauthorized actions are omitted.
    */
   getAllowedActions(): NeatTipTooltipAction[] {

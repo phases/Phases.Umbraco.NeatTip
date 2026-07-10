@@ -1,4 +1,7 @@
-import type { TooltipPosition } from "./tooltip-position.service.js";
+import {
+  TooltipPositionService,
+  type TooltipPosition,
+} from "./tooltip-position.service.js";
 import { NEATTIP_CONFIG } from "../config/neattip.config.js";
 
 type PositionChangeHandler = (position: TooltipPosition) => void;
@@ -11,9 +14,12 @@ export class TooltipDragService {
   #startTop = 0;
   #startLeft = 0;
   #activeTooltip: HTMLElement | undefined;
+  #positionHost: HTMLElement | undefined;
   #pendingPosition: TooltipPosition | undefined;
   #animationFrameId: number | undefined;
   #onPositionChange: PositionChangeHandler | undefined;
+  #activeHandle: HTMLElement | undefined;
+  readonly #positionService = new TooltipPositionService();
 
   get isDragging(): boolean {
     return this.#isDragging;
@@ -23,9 +29,11 @@ export class TooltipDragService {
     tooltip: HTMLElement,
     handle: HTMLElement,
     onPositionChange: PositionChangeHandler,
+    positionHost?: HTMLElement,
   ): void {
     this.teardown(tooltip, handle);
     this.#onPositionChange = onPositionChange;
+    this.#positionHost = positionHost;
 
     handle.addEventListener("pointerdown", this.#onPointerDown);
   }
@@ -39,11 +47,19 @@ export class TooltipDragService {
       cancelAnimationFrame(this.#animationFrameId);
       this.#animationFrameId = undefined;
     }
+    if (this.#activeHandle && this.#activePointerId !== undefined) {
+      try {
+        this.#activeHandle.releasePointerCapture(this.#activePointerId);
+      } catch {
+        // Ignore if capture was already released by the browser.
+      }
+    }
     tooltip.classList.remove("neattip-dragging");
-    this.#activeTooltip = undefined;
+    this.#activeHandle = undefined;
     this.#pendingPosition = undefined;
     this.#activePointerId = undefined;
     this.#isDragging = false;
+    this.#positionHost = undefined;
   }
 
   readonly #onPointerDown = (event: PointerEvent): void => {
@@ -61,14 +77,20 @@ export class TooltipDragService {
     }
 
     event.preventDefault();
+    event.stopPropagation();
+    const handle = event.currentTarget as HTMLElement;
+    this.#activeHandle = handle;
+    handle.setPointerCapture(event.pointerId);
     this.#activeTooltip = tooltip;
     this.#activePointerId = event.pointerId;
     this.#isDragging = true;
     this.#startX = event.clientX;
     this.#startY = event.clientY;
-    const rect = tooltip.getBoundingClientRect();
-    this.#startTop = rect.top;
-    this.#startLeft = rect.left;
+
+    const startPosition = this.#positionService.readTooltipPosition(tooltip, this.#positionHost);
+    this.#startTop = startPosition.top;
+    this.#startLeft = startPosition.left;
+
     tooltip.classList.add("neattip-dragging");
 
     document.addEventListener("pointermove", this.#onPointerMove);
@@ -92,18 +114,13 @@ export class TooltipDragService {
       top: this.#startTop + deltaY,
       left: this.#startLeft + deltaX,
     };
-    const maxTop = Math.max(
+
+    this.#pendingPosition = this.#positionService.clampToViewport(
+      unclamped,
+      tooltip,
       NEATTIP_CONFIG.viewportMargin,
-      window.innerHeight - tooltip.offsetHeight - NEATTIP_CONFIG.viewportMargin,
+      this.#positionHost,
     );
-    const maxLeft = Math.max(
-      NEATTIP_CONFIG.viewportMargin,
-      window.innerWidth - tooltip.offsetWidth - NEATTIP_CONFIG.viewportMargin,
-    );
-    this.#pendingPosition = {
-      top: Math.max(NEATTIP_CONFIG.viewportMargin, Math.min(unclamped.top, maxTop)),
-      left: Math.max(NEATTIP_CONFIG.viewportMargin, Math.min(unclamped.left, maxLeft)),
-    };
 
     if (this.#animationFrameId === undefined) {
       this.#animationFrameId = requestAnimationFrame(() => {
@@ -121,6 +138,14 @@ export class TooltipDragService {
     this.#flushPendingPosition();
     const tooltip = this.#activeTooltip;
     tooltip?.classList.remove("neattip-dragging");
+    if (this.#activeHandle) {
+      try {
+        this.#activeHandle.releasePointerCapture(event.pointerId);
+      } catch {
+        // Ignore if the browser already released capture.
+      }
+    }
+    this.#activeHandle = undefined;
     this.#activeTooltip = undefined;
     this.#pendingPosition = undefined;
     this.#activePointerId = undefined;

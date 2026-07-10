@@ -6,6 +6,16 @@ import {
   PROPERTY_LAYOUT_TAG,
   TEXTBOX_ICONS_SELECTOR,
 } from "../constants/selectors.js";
+import {
+  type CultureResolutionContext,
+  cultureKey,
+  getCultureDescription,
+  getOriginalDescription,
+  parseCultureDescriptions,
+  setCultureDescription,
+} from "../utils/culture-description.util.js";
+import { resolveCultureDescriptionStorage } from "../utils/culture-description-codec.js";
+import { getPropertyDescriptionFallback, helperTextService } from "./helper-text.service.js";
 import { queryLayoutRoot } from "../utils/shadow-dom.util.js";
 
 export class LabelPlacementService {
@@ -49,12 +59,12 @@ export class LabelPlacementService {
     const rollbackIcon = label.querySelector(TEXTBOX_ICONS_SELECTOR);
     if (rollbackIcon?.parentElement) {
       rollbackIcon.insertAdjacentElement("afterend", wrapper);
-      wrapper.style.marginLeft = "6px";
+      wrapper.style.marginLeft = "8px";
       return true;
     }
 
     label.insertAdjacentElement("afterend", wrapper);
-    wrapper.style.marginLeft = "6px";
+    wrapper.style.marginLeft = "8px";
     return true;
   }
 
@@ -69,14 +79,14 @@ export class LabelPlacementService {
     const rollbackIcon = labelArea.querySelector(TEXTBOX_ICONS_SELECTOR);
     if (rollbackIcon?.parentElement) {
       rollbackIcon.insertAdjacentElement("afterend", wrapper);
-      wrapper.style.marginLeft = "6px";
+      wrapper.style.marginLeft = "8px";
       return true;
     }
 
     const label = labelArea.querySelector<HTMLElement>(LABEL_SELECTORS);
     if (label) {
       label.insertAdjacentElement("afterend", wrapper);
-      wrapper.style.marginLeft = "6px";
+      wrapper.style.marginLeft = "8px";
       return true;
     }
 
@@ -145,8 +155,9 @@ export class LabelPlacementService {
       .neattip-wrapper {
         display: inline-flex;
         align-items: center;
-        margin-left: 6px;
+        margin-left: 8px;
         vertical-align: middle;
+        line-height: 1;
       }
 
       neat-tip-indicator {
@@ -187,17 +198,86 @@ export function getLivePropertyDescription(layout: HTMLElement): string {
   return descriptionElement.textContent?.trim() ?? "";
 }
 
-export function getPropertyDescription(layout: HTMLElement): string {
-  const storedDescription = layout.dataset.neattipStoredDescription;
-  if (storedDescription?.trim()) {
-    return storedDescription.trim();
+export function getPropertyDescription(
+  layout: HTMLElement,
+  cultureContext?: CultureResolutionContext,
+): string {
+  return resolvePropertyDescription(layout, cultureContext);
+}
+
+export function resolvePropertyDescription(
+  layout: HTMLElement,
+  cultureContext?: CultureResolutionContext,
+): string {
+  const activeCulture = cultureContext?.activeCulture;
+  const fallbackCulture =
+    cultureContext?.fallbackCulture ?? helperTextService.getDefaultCulture();
+
+  if (activeCulture !== undefined) {
+    const activeText = getCultureDescription(layout, activeCulture);
+    if (activeText) {
+      return activeText;
+    }
+  }
+
+  if (fallbackCulture !== undefined && cultureKey(fallbackCulture) !== cultureKey(activeCulture)) {
+    const fallbackText = getCultureDescription(layout, fallbackCulture);
+    if (fallbackText) {
+      return fallbackText;
+    }
+  }
+
+  const original = getOriginalDescription(layout);
+  if (original) {
+    const resolvedOriginal = resolveCultureDescriptionStorage(original, cultureContext);
+    if (resolvedOriginal) {
+      return resolvedOriginal;
+    }
+  }
+
+  const propertyFallback = getPropertyDescriptionFallback(layout);
+  if (propertyFallback) {
+    return propertyFallback;
+  }
+
+  const hasCultureMap = Object.keys(parseCultureDescriptions(layout)).length > 0;
+  if (!hasCultureMap) {
+    const storedDescription = layout.dataset.neattipStoredDescription?.trim();
+    if (storedDescription) {
+      return storedDescription;
+    }
   }
 
   return getLivePropertyDescription(layout);
 }
 
-export function resolvePropertyDescription(layout: HTMLElement): string {
-  return getPropertyDescription(layout) || getLivePropertyDescription(layout);
+export function syncResolvedDescription(
+  layout: HTMLElement,
+  cultureContext?: CultureResolutionContext,
+): string {
+  const cultureMap = parseCultureDescriptions(layout);
+  const hasCultureMap = Object.keys(cultureMap).length > 0;
+  const resolved = resolvePropertyDescription(layout, cultureContext).trim();
+
+  if (cultureContext?.activeCulture !== undefined) {
+    const activeCultureText = getCultureDescription(layout, cultureContext.activeCulture);
+    if (activeCultureText) {
+      layout.dataset.neattipStoredDescription = activeCultureText;
+      return activeCultureText;
+    }
+
+    if (!hasCultureMap && resolved) {
+      setCultureDescription(layout, cultureContext.activeCulture, resolved);
+    }
+  }
+
+  if (resolved) {
+    layout.dataset.neattipStoredDescription = resolved;
+  } else {
+    delete layout.dataset.neattipStoredDescription;
+  }
+
+  return resolved;
 }
 
 export function hideDescription(layout: HTMLElement): void {

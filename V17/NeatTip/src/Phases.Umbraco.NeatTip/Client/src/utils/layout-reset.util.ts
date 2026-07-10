@@ -8,14 +8,25 @@ import {
 import { collectPropertyLayouts, queryLayoutRoot } from "./shadow-dom.util.js";
 
 function layoutHasIndicator(layout: HTMLElement): boolean {
-  return !!queryLayoutRoot(layout).querySelector("neat-tip-indicator, .neattip-wrapper");
+  const root = queryLayoutRoot(layout);
+  return !!(
+    layout.querySelector("neat-tip-indicator, .neattip-wrapper")
+    || root.querySelector("neat-tip-indicator, .neattip-wrapper")
+  );
 }
 
 export function resetLayoutForReprocessing(layout: HTMLElement): void {
   const root = queryLayoutRoot(layout);
   const storedDescription = layout.dataset.neattipStoredDescription;
+  const indicators = new Set<Element>();
 
+  layout.querySelectorAll(".neattip-wrapper, neat-tip-indicator").forEach((element) => {
+    indicators.add(element);
+  });
   root.querySelectorAll(".neattip-wrapper, neat-tip-indicator").forEach((element) => {
+    indicators.add(element);
+  });
+  indicators.forEach((element) => {
     element.remove();
   });
 
@@ -23,6 +34,8 @@ export function resetLayoutForReprocessing(layout: HTMLElement): void {
     NEATTIP_MARKERS.processed,
     NEATTIP_MARKERS.keepVisible,
   );
+
+  delete layout.dataset.neattipResolvedCulture;
 
   root.querySelector(`#${FLASH_STYLE_ID}`)?.remove();
 
@@ -70,11 +83,6 @@ export function isStaleProcessedLayout(layout: HTMLElement): boolean {
   }
 
   if (!hasIndicator) {
-    return true;
-  }
-
-  const host = layout as HTMLElement & { description?: string };
-  if (host.description?.trim()) {
     return true;
   }
 

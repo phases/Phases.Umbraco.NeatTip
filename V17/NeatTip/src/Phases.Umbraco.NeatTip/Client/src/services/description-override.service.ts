@@ -1,36 +1,65 @@
 import { LABEL_SELECTORS } from "../constants/selectors.js";
+import { resolveDocumentKeyFromLocation } from "../utils/document-context.util.js";
 import { queryLayoutRoot } from "../utils/shadow-dom.util.js";
 import type { PropertyDescriptionUpdateTarget } from "./neattip-property-description-api.service.js";
 
 type DescriptionOverrideState = Record<string, string>;
 
 const STORAGE_KEY = "neattip.description.overrides.v1";
-const DOCUMENT_EDIT_PATTERN = /\/document\/edit\/([^/?#]+)/i;
+
+export type PropertyIdentity = {
+  contentTypeKey?: string;
+  blockContentTypeName?: string;
+  propertyAlias?: string;
+  propertyKey?: string;
+  propertyLabel?: string;
+  isElementPropertyContext?: boolean;
+};
 
 class DescriptionOverrideService {
   resolveUpdateTarget(layout: HTMLElement): PropertyDescriptionUpdateTarget | undefined {
-    const documentKey = this.#resolveDocumentId();
+    const documentKey = resolveDocumentKeyFromLocation();
     if (!documentKey) {
       return undefined;
     }
 
-    const propertyHost = findClosestAcrossShadow(
-      layout,
-      "umb-property, umb-content-workspace-property",
-    );
-
-    const propertyAlias = this.#resolvePropertyAlias(layout, propertyHost);
-    const propertyKey = this.#resolvePropertyGuid(layout, propertyHost);
-    const propertyLabel = this.#resolvePropertyLabel(layout);
-    if (!propertyAlias && !propertyKey && !propertyLabel) {
+    const identity = this.resolvePropertyIdentity(layout);
+    if (!identity?.propertyAlias && !identity?.propertyKey && !identity?.propertyLabel) {
       return undefined;
     }
 
     return {
       documentKey,
+      contentTypeKey: identity.contentTypeKey,
+      propertyAlias: identity.propertyAlias,
+      propertyKey: identity.propertyKey,
+      propertyLabel: identity.propertyLabel,
+    };
+  }
+
+  resolvePropertyIdentity(layout: HTMLElement): PropertyIdentity | undefined {
+    const propertyHost = findClosestAcrossShadow(
+      layout,
+      "umb-property, umb-content-workspace-property",
+    );
+
+    const contentTypeKey = this.#resolveContentTypeKey(layout);
+    const blockContentTypeName = this.#resolveBlockWorkspaceContentTypeName(layout);
+    const propertyAlias = this.#resolvePropertyAlias(layout, propertyHost);
+    const propertyKey = this.#resolvePropertyGuid(layout, propertyHost);
+    const propertyLabel = this.#resolvePropertyLabel(layout);
+    const isElementPropertyContext = this.#isElementPropertyContext(layout);
+    if (!propertyAlias && !propertyKey && !propertyLabel) {
+      return undefined;
+    }
+
+    return {
+      contentTypeKey,
+      blockContentTypeName,
       propertyAlias,
       propertyKey,
       propertyLabel,
+      isElementPropertyContext,
     };
   }
 
@@ -63,19 +92,13 @@ class DescriptionOverrideService {
   }
 
   #resolveLayoutKey(layout: HTMLElement): string | undefined {
-    const documentId = this.#resolveDocumentId();
+    const documentId = resolveDocumentKeyFromLocation();
     const propertyKey = this.#resolveStoragePropertyKey(layout);
     if (!documentId || !propertyKey) {
       return undefined;
     }
 
     return `${documentId}::${propertyKey}`;
-  }
-
-  #resolveDocumentId(): string | undefined {
-    const location = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-    const match = location.match(DOCUMENT_EDIT_PATTERN);
-    return match?.[1];
   }
 
   #resolveStoragePropertyKey(layout: HTMLElement): string | undefined {
@@ -97,26 +120,35 @@ class DescriptionOverrideService {
   }
 
   #resolvePropertyAlias(layout: HTMLElement, propertyHost: Element | null): string | undefined {
-    const hostAlias =
+    const layoutAlias = readPropertyLayoutValue(layout, "alias");
+    if (layoutAlias) {
+      return layoutAlias;
+    }
+
+    const hostAlias = readElementPropertyValue(propertyHost, "alias");
+    if (hostAlias) {
+      return hostAlias;
+    }
+
+    const directLayoutAlias =
+      layout.getAttribute("property-alias")
+      || layout.getAttribute("data-property-alias")
+      || layout.getAttribute("data-alias")
+      || layout.getAttribute("propertyAlias")
+      || layout.getAttribute("name");
+    if (directLayoutAlias?.trim()) {
+      return directLayoutAlias.trim();
+    }
+
+    const hostAttributeAlias =
       propertyHost?.getAttribute("alias")
       || propertyHost?.getAttribute("property-alias")
       || propertyHost?.getAttribute("data-property-alias")
       || propertyHost?.getAttribute("data-alias")
       || propertyHost?.getAttribute("propertyAlias")
       || propertyHost?.getAttribute("name");
-    if (hostAlias?.trim()) {
-      return hostAlias.trim();
-    }
-
-    const layoutAlias =
-      layout.getAttribute("alias")
-      || layout.getAttribute("property-alias")
-      || layout.getAttribute("data-property-alias")
-      || layout.getAttribute("data-alias")
-      || layout.getAttribute("propertyAlias")
-      || layout.getAttribute("name");
-    if (layoutAlias?.trim()) {
-      return layoutAlias.trim();
+    if (hostAttributeAlias?.trim()) {
+      return hostAttributeAlias.trim();
     }
 
     const root = queryLayoutRoot(layout);
@@ -133,6 +165,56 @@ class DescriptionOverrideService {
     return nestedAlias?.trim() || undefined;
   }
 
+  #resolveContentTypeKey(layout: HTMLElement): string | undefined {
+    let current: Node | null = layout;
+
+    while (current) {
+      if (current instanceof Element) {
+        const contentTypeKey =
+          current.getAttribute("data-content-element-type-key")
+          || (current instanceof HTMLElement ? current.dataset.contentElementTypeKey : undefined);
+        if (contentTypeKey?.trim() && isGuid(contentTypeKey.trim())) {
+          return contentTypeKey.trim();
+        }
+      }
+
+      if (current instanceof Element && current.assignedSlot) {
+        current = current.assignedSlot;
+        continue;
+      }
+
+      if (current.parentNode) {
+        current = current.parentNode;
+        continue;
+      }
+
+      const root = current.getRootNode();
+      current = root instanceof ShadowRoot ? root.host : null;
+    }
+
+    return undefined;
+  }
+
+  #resolveBlockWorkspaceContentTypeName(layout: HTMLElement): string | undefined {
+    const editor = findClosestAcrossShadow(
+      layout,
+      "umb-block-workspace-editor, umb-block-workspace-view-edit",
+    );
+    if (!editor) {
+      return undefined;
+    }
+
+    const headline = editor.querySelector("#headline");
+    return headline?.textContent?.trim() || undefined;
+  }
+
+  #isElementPropertyContext(layout: HTMLElement): boolean {
+    return !!findClosestAcrossShadow(
+      layout,
+      "umb-block-workspace-editor, umb-block-workspace-view-edit, umb-block-workspace-view-edit-property",
+    );
+  }
+
   #resolvePropertyGuid(layout: HTMLElement, propertyHost: Element | null): string | undefined {
     const candidates = [
       propertyHost?.getAttribute("key"),
@@ -145,7 +227,7 @@ class DescriptionOverrideService {
 
     for (const candidate of candidates) {
       const value = candidate?.trim();
-      if (value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)) {
+      if (value && isGuid(value)) {
         return value;
       }
     }
@@ -155,7 +237,12 @@ class DescriptionOverrideService {
 
   #resolvePropertyLabel(layout: HTMLElement): string | undefined {
     const root = queryLayoutRoot(layout);
-    return root.querySelector<HTMLElement>(LABEL_SELECTORS)?.textContent?.trim() || undefined;
+    const labelText = root.querySelector<HTMLElement>(LABEL_SELECTORS)?.textContent?.trim();
+    if (labelText) {
+      return labelText;
+    }
+
+    return readPropertyLayoutValue(layout, "label");
   }
 
   #readState(): DescriptionOverrideState {
@@ -199,6 +286,46 @@ function findClosestAcrossShadow(start: Element, selector: string): Element | nu
   }
 
   return null;
+}
+
+function isGuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
+type UmbPropertyLayoutHost = HTMLElement & {
+  alias?: string;
+  label?: string;
+  description?: string;
+};
+
+function readPropertyLayoutValue(
+  layout: HTMLElement,
+  field: "alias" | "label" | "description",
+): string | undefined {
+  const host = layout as UmbPropertyLayoutHost;
+  const fromProperty = host[field]?.trim();
+  if (fromProperty) {
+    return fromProperty;
+  }
+
+  return layout.getAttribute(field)?.trim() || undefined;
+}
+
+function readElementPropertyValue(
+  element: Element | null,
+  field: "alias" | "label" | "description",
+): string | undefined {
+  if (!element) {
+    return undefined;
+  }
+
+  const host = element as HTMLElement & Record<string, unknown>;
+  const fromProperty = typeof host[field] === "string" ? host[field].trim() : "";
+  if (fromProperty) {
+    return fromProperty;
+  }
+
+  return element.getAttribute(field)?.trim() || undefined;
 }
 
 export const descriptionOverrideService = new DescriptionOverrideService();

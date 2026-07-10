@@ -9,26 +9,20 @@ import { NEATTIP_SETTINGS_CHANGED_EVENT } from "../settings/constants.js";
 import { NeatTipService } from "../services/neattip.service.js";
 import { loadNeatTipSettings } from "../services/neattip-settings-api.service.js";
 import { restoreAllNeatTipLayouts } from "../utils/restore-layouts.util.js";
-import neattipStyles from "../styles/neattip.css?inline";
+import {
+  ensureNeatTipDocumentStyles,
+  removeNeatTipDocumentStyles,
+} from "../utils/neattip-style-host.util.js";
 
 let hostElement: UmbElement | undefined;
 let neatTipService: NeatTipService | undefined;
-let styleElement: HTMLStyleElement | undefined;
 
 function injectStyles(): void {
-  if (styleElement) {
-    return;
-  }
-
-  styleElement = document.createElement("style");
-  styleElement.id = "neattip-styles";
-  styleElement.textContent = neattipStyles;
-  document.head.appendChild(styleElement);
+  ensureNeatTipDocumentStyles();
 }
 
 function removeStyles(): void {
-  styleElement?.remove();
-  styleElement = undefined;
+  removeNeatTipDocumentStyles();
 }
 
 function startNeatTip(): void {

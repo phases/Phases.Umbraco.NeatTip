@@ -6,6 +6,7 @@ import {
   markProcessed,
   resolvePropertyDescription,
 } from "../services/label-placement.service.js";
+import { captureOriginalDescription } from "./culture-description.util.js";
 import { queryLayoutRoot } from "./shadow-dom.util.js";
 
 export const FLASH_STYLE_ID = "neattip-flash-style";
@@ -29,6 +30,8 @@ export function isFlashPreventionContext(): boolean {
 }
 
 export function storeAndClearLayoutDescription(layout: HTMLElement): boolean {
+  captureOriginalDescription(layout);
+
   const description =
     layout.dataset.neattipStoredDescription?.trim() || getLivePropertyDescription(layout);
 
@@ -36,6 +39,7 @@ export function storeAndClearLayoutDescription(layout: HTMLElement): boolean {
     return false;
   }
 
+  captureOriginalDescription(layout);
   layout.dataset.neattipStoredDescription = description;
 
   const host = layout as HTMLElement & { description?: string };

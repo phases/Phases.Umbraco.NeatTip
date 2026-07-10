@@ -5,23 +5,34 @@ const bearerSecurity = [{ scheme: "bearer", type: "http" }] as const;
 
 export type PropertyDescriptionUpdateTarget = {
   documentKey: string;
+  contentTypeKey?: string;
   propertyAlias?: string;
   propertyKey?: string;
   propertyLabel?: string;
+  culture?: string | null;
 };
 
 type PropertyDescriptionUpdatePayload = {
   documentKey: string;
+  contentTypeKey?: string;
   propertyAlias?: string;
   propertyKey?: string;
   propertyLabel?: string;
   description: string;
+  culture?: string;
 };
 
 export async function savePropertyDescriptionToApi(
   target: PropertyDescriptionUpdateTarget,
   description: string,
-): Promise<void> {
+): Promise<{
+  description: string;
+  cultureDescription?: string;
+  propertyDescription?: string;
+  contentTypeKey?: string;
+  propertyAlias?: string;
+  propertyKey?: string;
+}> {
   const payload: PropertyDescriptionUpdatePayload = {
     documentKey: target.documentKey,
     description: description.trim(),
@@ -29,6 +40,10 @@ export async function savePropertyDescriptionToApi(
 
   if (target.propertyAlias?.trim()) {
     payload.propertyAlias = target.propertyAlias.trim();
+  }
+
+  if (target.contentTypeKey?.trim()) {
+    payload.contentTypeKey = target.contentTypeKey.trim();
   }
 
   if (target.propertyKey?.trim()) {
@@ -39,7 +54,12 @@ export async function savePropertyDescriptionToApi(
     payload.propertyLabel = target.propertyLabel.trim();
   }
 
-  await umbHttpClient.put({
+  const culture = target.culture?.trim();
+  if (culture) {
+    payload.culture = culture;
+  }
+
+  const response = await umbHttpClient.put({
     url: NEATTIP_PROPERTY_DESCRIPTION_API_PATH,
     security: bearerSecurity,
     body: payload,
@@ -48,4 +68,21 @@ export async function savePropertyDescriptionToApi(
       Accept: "application/json",
     },
   });
+
+  const body = response.data as {
+    description?: string;
+    cultureDescription?: string;
+    propertyDescription?: string;
+    contentTypeKey?: string;
+    propertyAlias?: string;
+    propertyKey?: string;
+  } | undefined;
+  return {
+    description: body?.description ?? description.trim(),
+    cultureDescription: body?.cultureDescription,
+    propertyDescription: body?.propertyDescription,
+    contentTypeKey: body?.contentTypeKey ? String(body.contentTypeKey).trim() : undefined,
+    propertyAlias: body?.propertyAlias?.trim(),
+    propertyKey: body?.propertyKey ? String(body.propertyKey).trim() : undefined,
+  };
 }

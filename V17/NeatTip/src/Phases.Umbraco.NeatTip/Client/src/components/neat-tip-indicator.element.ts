@@ -9,44 +9,41 @@ export class NeatTipIndicatorElement extends LitElement {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      border: 1px solid var(--uui-color-border-emphasis, #b5b5b5);
+      width: 16px;
+      height: 16px;
       color: var(--uui-color-text-alt, #6f6f6f);
-      font-size: 12px;
+      opacity: 0.82;
       line-height: 1;
       cursor: pointer;
       vertical-align: middle;
       isolation: isolate;
       user-select: none;
-      background-color: var(--uui-color-surface, #fff);
-      transition: background-color ${NEATTIP_CONFIG.fadeSpeed}ms ease,
-        border-color ${NEATTIP_CONFIG.fadeSpeed}ms ease,
-        color ${NEATTIP_CONFIG.fadeSpeed}ms ease;
+      transform: scale(1);
+      transition:
+        color ${NEATTIP_CONFIG.fadeSpeed}ms ease,
+        opacity ${NEATTIP_CONFIG.fadeSpeed}ms ease,
+        transform ${NEATTIP_CONFIG.fadeSpeed}ms ease;
     }
 
-    :host(:hover),
+    :host(:hover) {
+      color: var(--uui-color-text, #242424);
+      opacity: 0.95;
+      transform: scale(1.04);
+    }
+
     :host(.neattip-active) {
-      background-color: var(--uui-color-surface-emphasis, #f3f3f3);
-      border-color: var(--uui-color-border-emphasis, #9b9b9b);
       color: var(--uui-color-interactive-emphasis, #174f8c);
-    }
-
-    :host(:active),
-    :host(.neattip-pressed) {
-      background-color: var(--uui-color-background-emphasis, #e8e8e8);
-      border-color: var(--uui-color-border, #8b8b8b);
+      opacity: 1;
+      transform: scale(1.04);
     }
 
     :host(:focus-visible) {
       outline: 2px solid var(--uui-color-focus, #3550b8);
       outline-offset: 2px;
-      box-shadow: 0 0 0 2px color-mix(in srgb, var(--uui-color-focus, #3550b8) 25%, transparent);
     }
 
     uui-icon {
-      font-size: 12px;
+      font-size: 16px;
       color: currentColor;
       pointer-events: none;
     }
@@ -57,8 +54,8 @@ export class NeatTipIndicatorElement extends LitElement {
 
     @media (max-width: 768px) {
       :host {
-        width: 18px;
-        height: 18px;
+        width: 16px;
+        height: 16px;
       }
     }
 
@@ -70,8 +67,7 @@ export class NeatTipIndicatorElement extends LitElement {
 
     @media (prefers-contrast: high) {
       :host {
-        border-width: 2px;
-        color: #000;
+        opacity: 1;
       }
     }
   `;
