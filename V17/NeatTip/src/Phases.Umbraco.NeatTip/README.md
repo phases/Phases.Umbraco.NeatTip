@@ -88,6 +88,7 @@ The settings page also includes a diagnostics panel to check that NeatTip servic
 
 ![NeatTip Edit](https://raw.githubusercontent.com/phases/Phases.Umbraco.NeatTip/refs/heads/V17/V17/NeatTip/src/Phases.Umbraco.NeatTip/Screenshots/NeatTip-edit.PNG)
 
+### NeatTip Settings
 ![NeatTip Settings](https://raw.githubusercontent.com/phases/Phases.Umbraco.NeatTip/refs/heads/V17/V17/NeatTip/src/Phases.Umbraco.NeatTip/Screenshots/NeatTip-Settings-Area.PNG)
 
 ## What NeatTip is not
