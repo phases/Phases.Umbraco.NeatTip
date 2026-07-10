@@ -19,6 +19,8 @@
     <PackageIcon>icon.png</PackageIcon>
     <Description>NeatTip is a backoffice-only UX package for Umbraco 17. It replaces long inline property descriptions with a compact info icon next to each property label. Editors can view the full helper text on demand in an interactive tooltip — keeping the content editor clean without losing guidance.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageProjectUrl>https://github.com/phases/Phases.Umbraco.NeatTip/tree/V17/V17/NeatTip/src/Phases.Umbraco.NeatTip</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/phases/Phases.Umbraco.NeatTip/tree/V17/V17/NeatTip/src/Phases.Umbraco.NeatTip</RepositoryUrl>
   </PropertyGroup>
 
 

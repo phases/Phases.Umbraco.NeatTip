@@ -74,19 +74,21 @@ The settings page also includes a diagnostics panel to check that NeatTip servic
 
 ### Before NeatTip
 
-![Before NeatTip](https://raw.githubusercontent.com/phases/Phases.Umbraco.NeatTip/refs/heads/main/Phases.Umbraco.NeatTip/Screenshots/before-neat-tip.PNG)
+![Before NeatTip](https://raw.githubusercontent.com/phases/Phases.Umbraco.NeatTip/refs/heads/V17/V17/NeatTip/src/Phases.Umbraco.NeatTip/Screenshots/before-neattip.PNG)
 
 ### After NeatTip
 
-![After NeatTip](https://raw.githubusercontent.com/phases/Phases.Umbraco.NeatTip/refs/heads/main/Phases.Umbraco.NeatTip/Screenshots/after-neat-tip.PNG)
+![After NeatTip](https://raw.githubusercontent.com/phases/Phases.Umbraco.NeatTip/refs/heads/V17/V17/NeatTip/src/Phases.Umbraco.NeatTip/Screenshots/after-neattip.PNG)
 
-### Moved tooltip
+### NeatTip
 
-![Moved tooltip](https://raw.githubusercontent.com/phases/Phases.Umbraco.NeatTip/refs/heads/main/Phases.Umbraco.NeatTip/Screenshots/move-neat-tip-position.PNG)
+![NeatTip](https://raw.githubusercontent.com/phases/Phases.Umbraco.NeatTip/refs/heads/V17/V17/NeatTip/src/Phases.Umbraco.NeatTip/Screenshots/neattip-tooltip.PNG)
 
-### NeatTip icon
+### NeatTip Edit
 
-![NeatTip icon](https://raw.githubusercontent.com/phases/Phases.Umbraco.NeatTip/refs/heads/main/Phases.Umbraco.NeatTip/Screenshots/neat-tip-icon.PNG)
+![NeatTip Edit](https://raw.githubusercontent.com/phases/Phases.Umbraco.NeatTip/refs/heads/V17/V17/NeatTip/src/Phases.Umbraco.NeatTip/Screenshots/NeatTip-edit.PNG)
+
+![NeatTip Settings](https://raw.githubusercontent.com/phases/Phases.Umbraco.NeatTip/refs/heads/V17/V17/NeatTip/src/Phases.Umbraco.NeatTip/Screenshots/NeatTip-Settings-Area.PNG)
 
 ## What NeatTip is not
 
