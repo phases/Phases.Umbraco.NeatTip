@@ -3,7 +3,7 @@ export const NEATTIP_SETTINGS_CHANGED_EVENT = "phases-neattip-settings-changed";
 export const NEATTIP_PACKAGE_NAME = "NeatTip";
 
 /** Mirrors the version declared in umbraco-package.json. */
-export const NEATTIP_PACKAGE_VERSION = "1.0.0";
+export const NEATTIP_PACKAGE_VERSION = "1.0.2";
 
 export const NEATTIP_ENTITY_TYPE = "phases-neattip-settings";
 

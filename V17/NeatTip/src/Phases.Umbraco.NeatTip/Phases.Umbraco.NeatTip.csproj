@@ -3,19 +3,28 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <StaticWebAssetBasePath>/</StaticWebAssetBasePath>
+    <CompressionEnabled>false</CompressionEnabled>
+    <StaticWebAssetBasePath>App_Plugins/PhasesUmbracoNeatTip</StaticWebAssetBasePath>
   </PropertyGroup>
 
   <PropertyGroup>
     <PackageId>Phases.Umbraco.NeatTip</PackageId>
     <Product>Phases.Umbraco.NeatTip</Product>
     <Title>Phases.Umbraco.NeatTip</Title>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Version>1.0.35</Version>
+    <Authors>midhun_roy</Authors>
+    <Company>Phases</Company>
+    <PackageTags>umbraco-marketplace;umbraco;umbraco-v17</PackageTags>
+    <PackageIcon>icon.png</PackageIcon>
+    <Description>NeatTip is a backoffice-only UX package for Umbraco 17. It replaces long inline property descriptions with a compact info icon next to each property label. Editors can view the full helper text on demand in an interactive tooltip — keeping the content editor clean without losing guidance.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
 
   <ItemGroup>
     <PackageReference Include="Umbraco.Cms.Api.Management" Version="17.2.2" />
-    <PackageReference Include="Umbraco.Cms.Web.Website" Version="17.2.2" />
+    <PackageReference Include="Umbraco.Cms.Core" Version="17.2.2" />
     <PackageReference Include="Umbraco.Cms.Web.Common" Version="17.2.2" />
   </ItemGroup>
 
@@ -28,7 +37,22 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\" />
+    <None Include="build\Phases.Umbraco.NeatTip.targets" Pack="true" PackagePath="buildTransitive\Phases.Umbraco.NeatTip.targets" />
+  </ItemGroup>
+
+  <Target Name="BuildNeatTipClient" BeforeTargets="BeforeBuild" Condition="Exists('Client\package.json')">
+    <Exec Command="npm run build" WorkingDirectory="Client" />
+  </Target>
+
+  <ItemGroup>
+    <None Update="icon.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Update="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>

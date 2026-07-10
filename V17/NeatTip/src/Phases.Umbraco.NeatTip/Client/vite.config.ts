@@ -7,7 +7,7 @@ export default defineConfig({
       formats: ["es"],
       fileName: "phases-umbraco-neat-tip",
     },
-    outDir: "../wwwroot/App_Plugins/PhasesUmbracoNeatTip",
+    outDir: "../wwwroot",
     emptyOutDir: true,
     sourcemap: true,
     rollupOptions: {

@@ -1,0 +1,11 @@
+<Project>
+  <Target Name="CopyPhasesUmbracoNeatTipAppPlugins" BeforeTargets="Build">
+    <ItemGroup>
+      <_NeatTipAppPluginFiles Include="$(MSBuildThisFileDirectory)..\staticwebassets\**\*.*" />
+    </ItemGroup>
+    <Copy
+      SourceFiles="@(_NeatTipAppPluginFiles)"
+      DestinationFiles="@(_NeatTipAppPluginFiles->'$(MSBuildProjectDirectory)\App_Plugins\PhasesUmbracoNeatTip\%(RecursiveDir)%(Filename)%(Extension)')"
+      SkipUnchangedFiles="true" />
+  </Target>
+</Project>

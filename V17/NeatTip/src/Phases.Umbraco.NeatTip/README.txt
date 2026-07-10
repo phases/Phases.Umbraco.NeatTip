@@ -24,7 +24,7 @@
 * Open a terminal inside the `\Client` folder
 * Run `npm install` to install all the dependencies
 * Run `npm run build` to build the project
-* The build output is copied to `wwwroot\App_Plugins\PhasesUmbracoNeatTip\`
+* The build output is copied to `wwwroot\` and served at `/App_Plugins/PhasesUmbracoNeatTip/`
 
 == Architecture ==
 * `backofficeEntryPoint` loads the NeatTip bundle
