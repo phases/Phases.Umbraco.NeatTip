@@ -106,9 +106,3 @@ If icons do not appear:
 3. Confirm the site targets **.NET 10** and **Umbraco 17.2+**
 4. Restart the site and hard-refresh the backoffice (Ctrl+F5)
 5. Open **Settings → Advanced Settings → NeatTip** and check the diagnostics panel
-
-## Links
-
-- [Documentation](https://github.com/phases/Phases.Umbraco.NeatTip/tree/main/Doc)
-- [Report an issue](https://github.com/phases/Phases.Umbraco.NeatTip/issues)
-- [Phases](https://www.phases.io/)
