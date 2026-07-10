@@ -1,6 +1,7 @@
 import {
   EXCLUDED_EDITOR_SELECTORS,
 } from "../constants/selectors.js";
+import { subscribeRouteChanges } from "./route-change.service.js";
 import { isWithinDocumentWorkspace } from "../utils/shadow-dom.util.js";
 
 const DOCUMENT_EDIT_PATTERN = /\/document\/edit\//i;
@@ -8,9 +9,9 @@ const CONTENT_SECTION_PATTERN = /\/section\/content/i;
 const EXCLUDED_SECTIONS = ["/section/settings", "/section/member", "/section/media"];
 
 export class WorkspaceContextService {
-  #navigationListeners = new Set<() => void>();
-  #originalPushState: History["pushState"] | undefined;
-  #originalReplaceState: History["replaceState"] | undefined;
+  subscribeNavigation(listener: () => void): () => void {
+    return subscribeRouteChanges(listener);
+  }
 
   isContentEditingContext(): boolean {
     const path = window.location.pathname;
@@ -37,62 +38,6 @@ export class WorkspaceContextService {
     }
 
     return isWithinDocumentWorkspace(element) || isWithinContentProperty(element);
-  }
-
-  subscribeNavigation(listener: () => void): () => void {
-    this.#navigationListeners.add(listener);
-
-    if (this.#navigationListeners.size === 1) {
-      this.#patchHistory();
-    }
-
-    return () => {
-      this.#navigationListeners.delete(listener);
-
-      if (this.#navigationListeners.size === 0) {
-        this.#restoreHistory();
-      }
-    };
-  }
-
-  #patchHistory(): void {
-    this.#originalPushState = history.pushState.bind(history);
-    this.#originalReplaceState = history.replaceState.bind(history);
-
-    history.pushState = (...args) => {
-      this.#originalPushState!(...args);
-      this.#notifyNavigation();
-    };
-
-    history.replaceState = (...args) => {
-      this.#originalReplaceState!(...args);
-      this.#notifyNavigation();
-    };
-  }
-
-  #restoreHistory(): void {
-    if (this.#originalPushState) {
-      history.pushState = this.#originalPushState;
-    }
-
-    if (this.#originalReplaceState) {
-      history.replaceState = this.#originalReplaceState;
-    }
-
-    this.#originalPushState = undefined;
-    this.#originalReplaceState = undefined;
-  }
-
-  #notifyNavigation(): void {
-    queueMicrotask(() => {
-      this.#navigationListeners.forEach((listener) => listener());
-    });
-
-    for (const delay of [50, 150, 400, 800]) {
-      window.setTimeout(() => {
-        this.#navigationListeners.forEach((listener) => listener());
-      }, delay);
-    }
   }
 }
 

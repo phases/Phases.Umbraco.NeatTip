@@ -5,12 +5,14 @@ export interface NeatTipSettings {
   enabled: boolean;
   minLength: number;
   editHelperTextAllowedSections?: string[];
+  canEditHelperText?: boolean;
 }
 
 export const neattipRuntime = {
   enabled: true,
   minLength: 0,
   settingsLoaded: false,
+  canEditHelperText: undefined as boolean | undefined,
   editHelperTextAllowedSections: [
     ...DEFAULT_EDIT_HELPER_TEXT_ALLOWED_SECTIONS,
   ] as string[],
@@ -19,6 +21,7 @@ export const neattipRuntime = {
 export function applyNeatTipSettings(settings: NeatTipSettings): void {
   neattipRuntime.enabled = settings.enabled;
   neattipRuntime.minLength = Math.max(0, settings.minLength);
+  neattipRuntime.canEditHelperText = settings.canEditHelperText;
   neattipRuntime.editHelperTextAllowedSections =
     normalizeEditSections(settings.editHelperTextAllowedSections);
   neattipRuntime.settingsLoaded = true;

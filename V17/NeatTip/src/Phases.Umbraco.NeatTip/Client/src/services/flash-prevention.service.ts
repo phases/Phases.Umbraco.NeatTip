@@ -7,12 +7,15 @@ import {
   isFlashPreventionContext,
 } from "../utils/flash-description.util.js";
 import { collectPropertyLayouts, queryLayoutRoot } from "../utils/shadow-dom.util.js";
-import { ShadowMutationObserver } from "../utils/shadow-observer.util.js";
+import {
+  refreshDomMutationObserver,
+  subscribeDomMutations,
+} from "../utils/dom-mutation-hub.js";
 import type { WorkspaceContextService } from "./workspace-context.service.js";
 
 export class FlashPreventionService {
   #fallbackTimer: ReturnType<typeof setTimeout> | undefined;
-  #shadowObserver: ShadowMutationObserver | undefined;
+  #unsubscribeDomMutations: (() => void) | undefined;
   #onLayoutDetected: ((layout: HTMLElement) => void) | undefined;
 
   constructor(private readonly workspace: WorkspaceContextService) {}
@@ -32,14 +35,14 @@ export class FlashPreventionService {
 
     this.#hideExistingDescriptions();
     this.#ensureObserver();
-    this.#shadowObserver?.refresh();
+    refreshDomMutationObserver();
     this.#scheduleFallback();
   }
 
   stop(): void {
     clearTimeout(this.#fallbackTimer);
-    this.#shadowObserver?.stop();
-    this.#shadowObserver = undefined;
+    this.#unsubscribeDomMutations?.();
+    this.#unsubscribeDomMutations = undefined;
   }
 
   cancelFallback(): void {
@@ -64,19 +67,17 @@ export class FlashPreventionService {
   }
 
   #ensureObserver(): void {
-    if (this.#shadowObserver) {
+    if (this.#unsubscribeDomMutations) {
       return;
     }
 
-    this.#shadowObserver = new ShadowMutationObserver(() => {
+    this.#unsubscribeDomMutations = subscribeDomMutations(() => {
       if (!neattipRuntime.settingsLoaded || !isFlashPreventionContext()) {
         return;
       }
 
       collectPropertyLayouts().forEach((layout) => this.#handleLayout(layout));
     });
-
-    this.#shadowObserver.start(document.documentElement);
   }
 
   #handleLayout(layout: HTMLElement, force = false): void {

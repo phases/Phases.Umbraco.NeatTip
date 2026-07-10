@@ -25,6 +25,7 @@ import {
   parseCultureDescriptionStorage,
 } from "../utils/culture-description-codec.js";
 import { helperTextService } from "./helper-text.service.js";
+import { subscribeRouteChanges } from "./route-change.service.js";
 import {
   NEATTIP_COPY_ICON_SVG,
   NEATTIP_EDIT_ICON_SVG,
@@ -43,6 +44,7 @@ export class TooltipManagerService {
   #isTouchDevice =
     "ontouchstart" in window || navigator.maxTouchPoints > 0;
   #unsubscribePermissions: (() => void) | undefined;
+  #unsubscribeRouteChanges: (() => void) | undefined;
   #repositionFrameId: number | undefined;
 
   readonly #positionService = new TooltipPositionService();
@@ -63,8 +65,7 @@ export class TooltipManagerService {
     window.addEventListener("scroll", this.#onScrollOrResize, true);
     document.addEventListener("scroll", this.#onScrollOrResize, true);
     window.addEventListener("resize", this.#onScrollOrResize);
-    window.addEventListener("popstate", this.#onNavigation);
-    window.addEventListener("hashchange", this.#onNavigation);
+    this.#unsubscribeRouteChanges = subscribeRouteChanges(this.#onNavigation);
     this.#unsubscribePermissions = this.#permissions.subscribe(() => {
       if (this.#tooltip) {
         this.#renderEmptyState(
@@ -88,6 +89,8 @@ export class TooltipManagerService {
     clearTimeout(this.#saveFeedbackTimeout);
     this.#unsubscribePermissions?.();
     this.#unsubscribePermissions = undefined;
+    this.#unsubscribeRouteChanges?.();
+    this.#unsubscribeRouteChanges = undefined;
     if (this.#repositionFrameId !== undefined) {
       cancelAnimationFrame(this.#repositionFrameId);
       this.#repositionFrameId = undefined;
@@ -98,8 +101,6 @@ export class TooltipManagerService {
     window.removeEventListener("scroll", this.#onScrollOrResize, true);
     document.removeEventListener("scroll", this.#onScrollOrResize, true);
     window.removeEventListener("resize", this.#onScrollOrResize);
-    window.removeEventListener("popstate", this.#onNavigation);
-    window.removeEventListener("hashchange", this.#onNavigation);
     const handle = this.#tooltip?.querySelector<HTMLElement>(".neattip-tooltip-header");
     if (this.#tooltip && handle) {
       this.#dragService.teardown(this.#tooltip, handle);

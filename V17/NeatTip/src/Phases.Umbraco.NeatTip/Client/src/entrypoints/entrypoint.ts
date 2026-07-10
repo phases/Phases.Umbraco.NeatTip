@@ -13,6 +13,10 @@ import {
   ensureNeatTipDocumentStyles,
   removeNeatTipDocumentStyles,
 } from "../utils/neattip-style-host.util.js";
+import {
+  startFlashPreventionBootstrap,
+  stopFlashPreventionBootstrap,
+} from "../flash-prevention-bootstrap.js";
 
 let hostElement: UmbElement | undefined;
 let neatTipService: NeatTipService | undefined;
@@ -51,18 +55,21 @@ async function applyRuntimeSettings(): Promise<void> {
   }
 
   if (neattipRuntime.enabled) {
+    startFlashPreventionBootstrap();
     startNeatTip();
     neatTipService?.syncPermissionsFromRuntime();
     neatTipService?.rescan();
     return;
   }
 
+  stopFlashPreventionBootstrap();
   stopNeatTip();
   restoreAllNeatTipLayouts();
 }
 
 const onSettingsChanged = (): void => {
   if (neattipRuntime.enabled) {
+    startFlashPreventionBootstrap();
     restoreAllNeatTipLayouts();
     startNeatTip();
     neatTipService?.syncPermissionsFromRuntime();
@@ -70,6 +77,7 @@ const onSettingsChanged = (): void => {
     return;
   }
 
+  stopFlashPreventionBootstrap();
   stopNeatTip();
   restoreAllNeatTipLayouts();
 };
@@ -83,6 +91,7 @@ export const onInit: UmbEntryPointOnInit = (host) => {
 
 export const onUnload: UmbEntryPointOnUnload = () => {
   window.removeEventListener(NEATTIP_SETTINGS_CHANGED_EVENT, onSettingsChanged);
+  stopFlashPreventionBootstrap();
   stopNeatTip();
   removeStyles();
   hostElement = undefined;

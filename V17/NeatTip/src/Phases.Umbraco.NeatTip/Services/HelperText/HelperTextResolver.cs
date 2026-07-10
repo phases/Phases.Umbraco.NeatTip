@@ -55,18 +55,7 @@ public class HelperTextResolver : IHelperTextResolver
                 return;
             }
 
-            var legacyMap = NeatTipCultureDescriptionCodec.ParseMap(propertyType.Description);
-            var existingMap = new Dictionary<string, string>(
-                _repository.GetCultureMap(contentType.Key, propertyType.Key),
-                StringComparer.OrdinalIgnoreCase);
-
-            foreach (var entry in legacyMap)
-            {
-                if (!existingMap.ContainsKey(entry.Key))
-                {
-                    existingMap[entry.Key] = entry.Value;
-                }
-            }
+            var existingMap = MergeLegacyCultureMap(propertyType, contentType);
 
             _repository.SaveCultureMap(contentType.Key, propertyType.Key, existingMap);
             await SyncPropertyDescriptionAsync(
@@ -170,20 +159,14 @@ public class HelperTextResolver : IHelperTextResolver
     {
         ArgumentNullException.ThrowIfNull(contentType);
 
+        var defaultCulture = await _languageService.GetDefaultIsoCodeAsync().ConfigureAwait(false);
         var results = new List<NeatTipPropertyHelperTextModel>();
 
         foreach (var propertyType in contentType.CompositionPropertyTypes)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            await EnsureMigratedAsync(propertyType, contentType, cancellationToken).ConfigureAwait(false);
 
-            var cultureMap = _repository.GetCultureMap(contentType.Key, propertyType.Key);
-            await SyncPropertyDescriptionAsync(
-                propertyType,
-                contentType,
-                cultureMap,
-                savedCulture: null,
-                cancellationToken).ConfigureAwait(false);
+            var cultureMap = MergeLegacyCultureMap(propertyType, contentType);
 
             results.Add(new NeatTipPropertyHelperTextModel
             {
@@ -192,7 +175,10 @@ public class HelperTextResolver : IHelperTextResolver
                 PropertyAlias = propertyType.Alias,
                 PropertyName = propertyType.Name,
                 PropertyKey = propertyType.Key,
-                PropertyDescription = GetPropertyDescriptionFallback(propertyType.Description),
+                PropertyDescription = GetEffectivePropertyDescription(
+                    propertyType,
+                    cultureMap,
+                    defaultCulture),
                 CultureMap = cultureMap.ToDictionary(
                     entry => entry.Key,
                     entry => entry.Value,
@@ -201,6 +187,40 @@ public class HelperTextResolver : IHelperTextResolver
         }
 
         return results;
+    }
+
+    private Dictionary<string, string> MergeLegacyCultureMap(
+        IPropertyType propertyType,
+        IContentType contentType)
+    {
+        var existingMap = new Dictionary<string, string>(
+            _repository.GetCultureMap(contentType.Key, propertyType.Key),
+            StringComparer.OrdinalIgnoreCase);
+
+        if (!NeatTipCultureDescriptionCodec.IsCultureMap(propertyType.Description))
+        {
+            return existingMap;
+        }
+
+        var legacyMap = NeatTipCultureDescriptionCodec.ParseMap(propertyType.Description);
+        foreach (var entry in legacyMap)
+        {
+            if (!existingMap.ContainsKey(entry.Key))
+            {
+                existingMap[entry.Key] = entry.Value;
+            }
+        }
+
+        return existingMap;
+    }
+
+    private static string GetEffectivePropertyDescription(
+        IPropertyType propertyType,
+        IReadOnlyDictionary<string, string> cultureMap,
+        string? defaultCulture)
+    {
+        var syncValue = ResolvePropertyDescriptionSyncValue(cultureMap, defaultCulture, savedCulture: null);
+        return syncValue ?? GetPropertyDescriptionFallback(propertyType.Description);
     }
 
     private static string GetPropertyDescriptionFallback(string? description)

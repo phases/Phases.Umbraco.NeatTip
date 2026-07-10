@@ -11,7 +11,10 @@ import {
   setCultureDescription,
 } from "../utils/culture-description.util.js";
 import { storeAndClearLayoutDescription } from "../utils/flash-description.util.js";
-import { ShadowMutationObserver } from "../utils/shadow-observer.util.js";
+import {
+  refreshDomMutationObserver,
+  subscribeDomMutations,
+} from "../utils/dom-mutation-hub.js";
 import { resolveDocumentKeyFromLocation } from "../utils/document-context.util.js";
 import { helperTextService } from "./helper-text.service.js";
 import type { PropertyProcessorService } from "./property-processor.service.js";
@@ -19,7 +22,7 @@ import type { VariantCultureService } from "./variant-culture.service.js";
 import type { WorkspaceContextService } from "./workspace-context.service.js";
 
 export class PropertyScannerService {
-  #shadowObserver: ShadowMutationObserver | undefined;
+  #unsubscribeDomMutations: (() => void) | undefined;
   #debounceTimer: ReturnType<typeof setTimeout> | undefined;
   #frameTimer: ReturnType<typeof requestAnimationFrame> | undefined;
   #layoutObservers = new WeakMap<HTMLElement, MutationObserver>();
@@ -33,12 +36,11 @@ export class PropertyScannerService {
 
   start(): void {
     void this.#scanDocument();
-    this.#shadowObserver = new ShadowMutationObserver(() => this.#scheduleScan());
-    this.#shadowObserver.start(document.documentElement);
+    this.#unsubscribeDomMutations = subscribeDomMutations(() => this.#scheduleScan());
   }
 
   scanNow(): void {
-    this.#shadowObserver?.refresh();
+    refreshDomMutationObserver();
     void this.#scanDocument();
   }
 
@@ -55,8 +57,8 @@ export class PropertyScannerService {
     this.#activeObservers.forEach((observer) => observer.disconnect());
     this.#activeObservers.clear();
     this.#layoutObservers = new WeakMap();
-    this.#shadowObserver?.stop();
-    this.#shadowObserver = undefined;
+    this.#unsubscribeDomMutations?.();
+    this.#unsubscribeDomMutations = undefined;
   }
 
   #scheduleScan(): void {

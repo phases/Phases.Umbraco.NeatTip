@@ -1,5 +1,5 @@
-import { K as e } from "./bundle.manifests-C2kQPsY2.js";
+import { m as a } from "./bundle.manifests-_iprUSr9.js";
 export {
-  e as manifests
+  a as manifests
 };
 //# sourceMappingURL=phases-umbraco-neat-tip.js.map

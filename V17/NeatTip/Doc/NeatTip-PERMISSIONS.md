@@ -19,17 +19,13 @@ Unauthorized actions are **omitted**, not disabled.
 
 ### Evaluation (Edit)
 
+The client uses the server-provided `canEditHelperText` flag from settings. It does not evaluate admin, sections, or tree access locally.
+
 1. If Umbraco current user is unknown → **deny Edit**, allow Copy (safe default).
-2. If `currentUser.isAdmin === true` → **allow Edit**.
-3. If any configured section alias is in `currentUser.allowedSections` → **allow Edit**.
-4. Else → **deny Edit**.
+2. If `canEditHelperText` from `GET .../neattip/settings` is `true` → **allow Edit**.
+3. Otherwise → **deny Edit**.
 
-Checks use Umbraco’s native backoffice APIs:
-
-- `UMB_CURRENT_USER_CONTEXT` (`@umbraco-cms/backoffice/current-user`)
-- `isAdmin` and `allowedSections` from `UmbCurrentUserModel`
-
-No hardcoded user-group / role names. Section aliases that grant Edit are configurable.
+When the current user changes, settings are reloaded so `canEditHelperText` stays aligned with the server.
 
 ### Runtime updates without code changes
 
@@ -63,18 +59,30 @@ Keep new rules inside `NeatTipPermissionsService` (or helpers it owns). Do not p
 - Admins always get Edit regardless of this list.
 - Values are Umbraco **section aliases**, not role names.
 
-`GET /umbraco/management/api/v1/neattip/settings` returns `editHelperTextAllowedSections` so the client stays aligned with server config.
+`GET /umbraco/management/api/v1/neattip/settings` returns `editHelperTextAllowedSections` and `canEditHelperText` so the client stays aligned with server authorization.
 
 ## Server authorization
 
-**File:** `Controllers/NeatTipSettingsController.cs`
+**File:** `Services/NeatTipEditHelperTextAuthorizationService.cs`
 
-| Endpoint | Policy |
+One service evaluates edit permission for both the API and the client UI.
+
+### Evaluation (Edit)
+
+1. If the current backoffice user cannot be determined → **deny Edit**.
+2. If the user is an Umbraco admin → **allow Edit**.
+3. If the user does **not** pass `AuthorizationPolicies.TreeAccessDocumentTypes` → **deny Edit**.
+4. If none of the configured `editHelperTextAllowedSections` are in the user's `allowedSections` → **deny Edit**.
+5. Otherwise → **allow Edit**.
+
+`GET /umbraco/management/api/v1/neattip/settings` returns `canEditHelperText` for the current user using this service.
+
+| Endpoint | Authorization |
 | --- | --- |
 | `PUT .../neattip/settings` | `AuthorizationPolicies.SectionAccessSettings` |
-| `PUT .../neattip/settings/property-description` | `AuthorizationPolicies.TreeAccessDocumentTypes` |
+| `PUT .../neattip/settings/property-description` | `INeatTipEditHelperTextAuthorizationService` (same rules as `canEditHelperText`) |
 
-Policies are Umbraco built-ins (`Umbraco.Cms.Web.Common.Authorization.AuthorizationPolicies`). The property-description endpoint matches authority required to edit document types; UI hiding alone is not trusted.
+The client reads `canEditHelperText` from settings and does **not** evaluate edit permission locally.
 
 ## Safe defaults
 
@@ -83,4 +91,4 @@ If permission cannot be determined:
 - **Allow** Copy
 - **Hide** Edit
 - **Reject** edit/save in the client
-- **403** from the Management API without `TreeAccessDocumentTypes`
+- **403** from the Management API when `CanEditHelperTextAsync` returns false

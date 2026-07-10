@@ -21,6 +21,7 @@ function normalizeSettings(settings: NeatTipSettings): NeatTipSettings {
   return {
     enabled: settings.enabled,
     minLength: Math.max(0, settings.minLength),
+    canEditHelperText: settings.canEditHelperText,
     editHelperTextAllowedSections:
       sections.length > 0
         ? sections

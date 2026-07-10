@@ -14,14 +14,13 @@ export type NeatTipTooltipAction = "copy" | "edit";
 export interface NeatTipTooltipPermissions {
   /** Always allowed when the permission state is unknown or loaded. */
   canCopy: boolean;
-  /** True only when Umbraco authorizes helper-text editing. */
+  /** True only when the server authorizes helper-text editing. */
   canEditHelperText: boolean;
 }
 
 /**
- * Default section aliases that grant Edit helper text.
- * Mirrors Umbraco Settings access (Document Types live under Settings).
- * Overridable via NeatTip:EditHelperTextAllowedSections — do not hardcode role names.
+ * Default section aliases returned by settings for documentation/config parity.
+ * Authorization is evaluated server-side; the client does not apply this list.
  */
 export const DEFAULT_EDIT_HELPER_TEXT_ALLOWED_SECTIONS = [
   "Umb.Section.Settings",
@@ -35,24 +34,23 @@ const SAFE_DEFAULT_PERMISSIONS: NeatTipTooltipPermissions = {
 const CURRENT_USER_OBSERVE_ALIAS = Symbol("neattip-current-user");
 
 /**
- * Encapsulates Umbraco-native permission checks for tooltip actions.
+ * Encapsulates permission checks for tooltip actions.
  *
- * Evaluation order for Edit:
- * 1. If the current user cannot be determined → deny Edit (allow Copy).
- * 2. If `isAdmin` (Umbraco flag) → allow Edit.
- * 3. If any configured section alias is in `allowedSections` → allow Edit.
- * 4. Otherwise → deny Edit.
+ * Edit permission comes from the server-evaluated `canEditHelperText` flag
+ * (GET /neattip/settings), which uses the same rules as PUT property-description.
+ * The client never infers edit access locally.
  *
- * Observes `UMB_CURRENT_USER_CONTEXT` so permission changes after login
- * (group updates / current-user reload) notify subscribers without mixing
- * auth logic into tooltip rendering.
+ * Observes `UMB_CURRENT_USER_CONTEXT` so callers can refresh server permission
+ * when the current user changes.
  */
 export class NeatTipPermissionsService extends UmbControllerBase {
   #permissions: NeatTipTooltipPermissions = { ...SAFE_DEFAULT_PERMISSIONS };
-  #allowedSections: string[] = [...DEFAULT_EDIT_HELPER_TEXT_ALLOWED_SECTIONS];
+  #serverCanEditHelperText: boolean | undefined;
   #listeners = new Set<(permissions: NeatTipTooltipPermissions) => void>();
+  #userChangeListeners = new Set<() => void>();
   #currentUser: UmbCurrentUserModel | undefined;
   #userKnown = false;
+  #lastUserUnique: string | undefined;
 
   constructor(host: UmbControllerHost) {
     super(host);
@@ -61,8 +59,15 @@ export class NeatTipPermissionsService extends UmbControllerBase {
       this.observe(
         context?.currentUser,
         (user) => {
+          const previousUnique = this.#lastUserUnique;
           this.#currentUser = user;
           this.#userKnown = user !== undefined;
+          this.#lastUserUnique = user?.unique;
+
+          if (previousUnique !== this.#lastUserUnique) {
+            this.#notifyUserChanged();
+          }
+
           this.#recalculate();
         },
         CURRENT_USER_OBSERVE_ALIAS,
@@ -71,20 +76,22 @@ export class NeatTipPermissionsService extends UmbControllerBase {
   }
 
   /**
-   * Replaces the section aliases that grant Edit helper text.
-   * Empty/invalid values fall back to the package default.
+   * Applies the server-evaluated edit permission flag.
+   * Undefined resets to the safe default (deny edit).
    */
-  setEditHelperTextAllowedSections(sections: string[] | undefined | null): void {
-    const normalized = (sections ?? [])
-      .map((section) => section?.trim())
-      .filter((section): section is string => !!section);
-
-    this.#allowedSections =
-      normalized.length > 0
-        ? normalized
-        : [...DEFAULT_EDIT_HELPER_TEXT_ALLOWED_SECTIONS];
-
+  setServerCanEditHelperText(canEdit: boolean | undefined): void {
+    this.#serverCanEditHelperText = canEdit;
     this.#recalculate();
+  }
+
+  /**
+   * Subscribe to current-user identity changes so server permission can be refreshed.
+   */
+  onUserChanged(listener: () => void): () => void {
+    this.#userChangeListeners.add(listener);
+    return () => {
+      this.#userChangeListeners.delete(listener);
+    };
   }
 
   getPermissions(): NeatTipTooltipPermissions {
@@ -129,10 +136,19 @@ export class NeatTipPermissionsService extends UmbControllerBase {
 
   override destroy(): void {
     this.#listeners.clear();
+    this.#userChangeListeners.clear();
     this.#currentUser = undefined;
     this.#userKnown = false;
+    this.#lastUserUnique = undefined;
+    this.#serverCanEditHelperText = undefined;
     this.#permissions = { ...SAFE_DEFAULT_PERMISSIONS };
     super.destroy();
+  }
+
+  #notifyUserChanged(): void {
+    for (const listener of this.#userChangeListeners) {
+      listener();
+    }
   }
 
   #recalculate(): void {
@@ -146,23 +162,8 @@ export class NeatTipPermissionsService extends UmbControllerBase {
 
     return {
       canCopy: true,
-      canEditHelperText: this.#evaluateCanEdit(this.#currentUser),
+      canEditHelperText: this.#serverCanEditHelperText === true,
     };
-  }
-
-  #evaluateCanEdit(user: UmbCurrentUserModel): boolean {
-    if (user.isAdmin === true) {
-      return true;
-    }
-
-    const allowedSections = user.allowedSections ?? [];
-    if (!Array.isArray(allowedSections)) {
-      return false;
-    }
-
-    return this.#allowedSections.some((section) =>
-      allowedSections.includes(section),
-    );
   }
 
   #setPermissions(next: NeatTipTooltipPermissions): void {

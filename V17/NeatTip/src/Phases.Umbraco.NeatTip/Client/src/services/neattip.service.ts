@@ -3,9 +3,10 @@ import { resetAllLayouts, resetUnhealthyLayouts } from "../utils/layout-reset.ut
 import { neattipRuntime } from "../config/neattip-runtime.js";
 import { FlashPreventionService } from "./flash-prevention.service.js";
 import { NeatTipPermissionsService } from "./permissions.service.js";
+import { loadNeatTipSettings } from "./neattip-settings-api.service.js";
 import { PropertyProcessorService } from "./property-processor.service.js";
 import { PropertyScannerService } from "./property-scanner.service.js";
-import { RouteMonitorService } from "./route-monitor.service.js";
+import { subscribeRouteChanges } from "./route-change.service.js";
 import { TooltipManagerService } from "./tooltip-manager.service.js";
 import { VariantCultureService } from "./variant-culture.service.js";
 import { WorkspaceContextService } from "./workspace-context.service.js";
@@ -15,14 +16,14 @@ export class NeatTipService {
   readonly #permissions: NeatTipPermissionsService;
   readonly #culture: VariantCultureService;
   readonly #workspace = new WorkspaceContextService();
-  readonly #routeMonitor = new RouteMonitorService();
   readonly #tooltipManager: TooltipManagerService;
   readonly #flashPrevention = new FlashPreventionService(this.#workspace);
   readonly #processor: PropertyProcessorService;
   readonly #scanner: PropertyScannerService;
   #unsubscribeNavigation: (() => void) | undefined;
-  #unsubscribeRouteMonitor: (() => void) | undefined;
   #unsubscribeCulture: (() => void) | undefined;
+  #unsubscribeUserPermissionRefresh: (() => void) | undefined;
+  #permissionRefreshPromise: Promise<void> | undefined;
   #routeChangeTimer: ReturnType<typeof setTimeout> | undefined;
   #navigationHandler = (): void => {
     this.#scheduleRouteChange();
@@ -31,9 +32,10 @@ export class NeatTipService {
   constructor(host: UmbControllerHost) {
     this.#permissions = new NeatTipPermissionsService(host);
     this.#culture = new VariantCultureService(host);
-    this.#permissions.setEditHelperTextAllowedSections(
-      neattipRuntime.editHelperTextAllowedSections,
-    );
+    this.#unsubscribeUserPermissionRefresh = this.#permissions.onUserChanged(() => {
+      void this.#refreshServerPermissions();
+    });
+    this.syncPermissionsFromRuntime();
     this.#tooltipManager = new TooltipManagerService(this.#permissions, this.#culture);
     this.#processor = new PropertyProcessorService(
       this.#workspace,
@@ -47,11 +49,28 @@ export class NeatTipService {
     );
   }
 
-  /** Refresh section aliases from runtime settings (config-driven permissions). */
+  /** Refresh server-evaluated edit permission from runtime settings. */
   syncPermissionsFromRuntime(): void {
-    this.#permissions.setEditHelperTextAllowedSections(
-      neattipRuntime.editHelperTextAllowedSections,
-    );
+    this.#permissions.setServerCanEditHelperText(neattipRuntime.canEditHelperText);
+  }
+
+  async #refreshServerPermissions(): Promise<void> {
+    if (this.#permissionRefreshPromise) {
+      return this.#permissionRefreshPromise;
+    }
+
+    this.#permissionRefreshPromise = loadNeatTipSettings()
+      .then(() => {
+        this.syncPermissionsFromRuntime();
+      })
+      .catch(() => {
+        this.#permissions.setServerCanEditHelperText(undefined);
+      })
+      .finally(() => {
+        this.#permissionRefreshPromise = undefined;
+      });
+
+    return this.#permissionRefreshPromise;
   }
 
   start(): void {
@@ -62,16 +81,11 @@ export class NeatTipService {
     this.#flashPrevention.start();
     this.#tooltipManager.start();
     this.#scanner.start();
-    this.#routeMonitor.start();
 
-    this.#unsubscribeNavigation = this.#workspace.subscribeNavigation(this.#navigationHandler);
-    this.#unsubscribeRouteMonitor = this.#routeMonitor.subscribe(this.#navigationHandler);
+    this.#unsubscribeNavigation = subscribeRouteChanges(this.#navigationHandler);
     this.#unsubscribeCulture = this.#culture.subscribe(() => {
       this.#handleCultureChange();
     });
-
-    window.addEventListener("popstate", this.#navigationHandler);
-    window.addEventListener("hashchange", this.#navigationHandler);
 
     this.#handleRouteChange();
   }
@@ -81,13 +95,10 @@ export class NeatTipService {
     this.#routeChangeTimer = undefined;
     this.#unsubscribeNavigation?.();
     this.#unsubscribeNavigation = undefined;
-    this.#unsubscribeRouteMonitor?.();
-    this.#unsubscribeRouteMonitor = undefined;
     this.#unsubscribeCulture?.();
     this.#unsubscribeCulture = undefined;
-    window.removeEventListener("popstate", this.#navigationHandler);
-    window.removeEventListener("hashchange", this.#navigationHandler);
-    this.#routeMonitor.stop();
+    this.#unsubscribeUserPermissionRefresh?.();
+    this.#unsubscribeUserPermissionRefresh = undefined;
     this.#scanner.stop();
     this.#tooltipManager.stop();
     this.#flashPrevention.stop();

@@ -59,8 +59,62 @@ function escapeHtml(value: string): string {
 }
 
 const LINK_PATTERN = /(https?:\/\/[^\s<]+|www\.[^\s<]+|mailto:[^\s<]+|[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
-const BLOCKED_TAGS = new Set(["script", "style", "iframe", "object", "embed", "link", "meta"]);
-const BLOCKED_URL_PROTOCOL = /^(?:javascript|data|vbscript):/i;
+
+/** Tags permitted in tooltip HTML (markdown / UFM output). */
+const ALLOWED_TAGS = new Set([
+  "a",
+  "b",
+  "blockquote",
+  "br",
+  "code",
+  "del",
+  "em",
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6",
+  "hr",
+  "i",
+  "li",
+  "ol",
+  "p",
+  "pre",
+  "s",
+  "strong",
+  "u",
+  "ul",
+]);
+
+/** Dangerous tags whose content must be discarded entirely. */
+const DROP_CONTENT_TAGS = new Set([
+  "applet",
+  "audio",
+  "base",
+  "canvas",
+  "embed",
+  "form",
+  "frame",
+  "frameset",
+  "iframe",
+  "img",
+  "input",
+  "link",
+  "math",
+  "meta",
+  "object",
+  "picture",
+  "script",
+  "source",
+  "style",
+  "svg",
+  "template",
+  "track",
+  "video",
+]);
+
+const BLOCKED_URL_PROTOCOL = /^(?:javascript|data|vbscript|blob|file):/i;
 
 function sanitizeAndLinkifyHtml(html: string): string {
   const template = document.createElement("template");
@@ -85,25 +139,18 @@ function sanitizeNode(node: Node): void {
   }
 
   const tagName = node.tagName.toLowerCase();
-  if (BLOCKED_TAGS.has(tagName)) {
+
+  if (DROP_CONTENT_TAGS.has(tagName)) {
     node.remove();
     return;
   }
 
-  for (const attribute of Array.from(node.attributes)) {
-    const name = attribute.name.toLowerCase();
-    if (name.startsWith("on")) {
-      node.removeAttribute(attribute.name);
-      continue;
-    }
-
-    if (name === "href" || name === "src") {
-      const value = attribute.value.trim();
-      if (BLOCKED_URL_PROTOCOL.test(value)) {
-        node.removeAttribute(attribute.name);
-      }
-    }
+  if (!ALLOWED_TAGS.has(tagName)) {
+    unwrapElement(node);
+    return;
   }
+
+  stripDisallowedAttributes(node, tagName);
 
   if (tagName === "a") {
     node.classList.add("neattip-link");
@@ -112,6 +159,42 @@ function sanitizeNode(node: Node): void {
 
   for (const child of Array.from(node.childNodes)) {
     sanitizeNode(child);
+  }
+}
+
+function unwrapElement(element: Element): void {
+  const parent = element.parentNode;
+  if (!parent) {
+    element.remove();
+    return;
+  }
+
+  while (element.firstChild) {
+    const child = element.firstChild;
+    parent.insertBefore(child, element);
+    sanitizeNode(child);
+  }
+
+  element.remove();
+}
+
+function stripDisallowedAttributes(element: Element, tagName: string): void {
+  for (const attribute of Array.from(element.attributes)) {
+    const name = attribute.name.toLowerCase();
+
+    if (name.startsWith("on")) {
+      element.removeAttribute(attribute.name);
+      continue;
+    }
+
+    if (tagName === "a" && name === "href") {
+      if (isUnsafeUrl(attribute.value)) {
+        element.removeAttribute(attribute.name);
+      }
+      continue;
+    }
+
+    element.removeAttribute(attribute.name);
   }
 }
 
@@ -204,7 +287,7 @@ function isInsideAnchor(node: Text): boolean {
 
 function toSafeHref(rawToken: string): string | null {
   const token = rawToken.trim();
-  if (!token) {
+  if (!token || isUnsafeUrl(token)) {
     return null;
   }
 
@@ -213,6 +296,10 @@ function toSafeHref(rawToken: string): string | null {
     : token.includes("@") && !token.startsWith("mailto:")
       ? `mailto:${token}`
       : token;
+
+  if (isUnsafeUrl(normalized)) {
+    return null;
+  }
 
   try {
     const parsed = new URL(normalized);
@@ -240,11 +327,45 @@ function trimTrailingPunctuation(value: string): { token: string; trailing: stri
 
 function secureAnchor(anchor: HTMLAnchorElement): void {
   const href = anchor.getAttribute("href") ?? "";
-  if (!href || BLOCKED_URL_PROTOCOL.test(href.trim())) {
+  if (!href || isUnsafeUrl(href)) {
     anchor.removeAttribute("href");
     return;
   }
 
   anchor.setAttribute("target", "_blank");
   anchor.setAttribute("rel", "noopener noreferrer");
+}
+
+function isUnsafeUrl(value: string): boolean {
+  const normalized = normalizeUrlForInspection(value);
+  if (!normalized) {
+    return true;
+  }
+
+  if (BLOCKED_URL_PROTOCOL.test(normalized)) {
+    return true;
+  }
+
+  // Catch encoded or obfuscated javascript: schemes.
+  if (/javascript\s*:/i.test(normalized)) {
+    return true;
+  }
+
+  return false;
+}
+
+function normalizeUrlForInspection(value: string): string {
+  let result = value.trim();
+
+  // Decode common HTML character references used to bypass protocol checks.
+  result = result
+    .replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCharCode(Number.parseInt(hex, 16)))
+    .replace(/&#(\d+);/g, (_, num) => String.fromCharCode(Number.parseInt(num, 10)))
+    .replace(/&Tab;/gi, "")
+    .replace(/&NewLine;/gi, "");
+
+  // Remove control characters and whitespace that can hide dangerous schemes.
+  result = result.replace(/[\u0000-\u001f\u007f-\u009f\s]+/g, "");
+
+  return result.toLowerCase();
 }

@@ -16,28 +16,38 @@ namespace Phases.Umbraco.NeatTip.Controllers;
 public class NeatTipSettingsController : ManagementApiControllerBase
 {
     private readonly INeatTipSettingsService _settingsService;
+    private readonly INeatTipEditHelperTextAuthorizationService _editHelperTextAuthorization;
     private readonly IHelperTextResolver _helperTextResolver;
+    private readonly IReferencedElementTypeResolver _referencedElementTypeResolver;
     private readonly IContentService _contentService;
     private readonly IContentTypeService _contentTypeService;
     private readonly ILanguageService _languageService;
 
     public NeatTipSettingsController(
         INeatTipSettingsService settingsService,
+        INeatTipEditHelperTextAuthorizationService editHelperTextAuthorization,
         IHelperTextResolver helperTextResolver,
+        IReferencedElementTypeResolver referencedElementTypeResolver,
         IContentService contentService,
         IContentTypeService contentTypeService,
         ILanguageService languageService)
     {
         _settingsService = settingsService;
+        _editHelperTextAuthorization = editHelperTextAuthorization;
         _helperTextResolver = helperTextResolver;
+        _referencedElementTypeResolver = referencedElementTypeResolver;
         _contentService = contentService;
         _contentTypeService = contentTypeService;
         _languageService = languageService;
     }
 
     [HttpGet]
-    public ActionResult<NeatTipSettingsModel> Get()
-        => Ok(_settingsService.GetSettings());
+    public async Task<ActionResult<NeatTipSettingsModel>> Get()
+    {
+        var settings = _settingsService.GetSettings();
+        settings.CanEditHelperText = await _editHelperTextAuthorization.CanEditHelperTextAsync(User);
+        return Ok(settings);
+    }
 
     [HttpPut]
     [Authorize(Policy = AuthorizationPolicies.SectionAccessSettings)]
@@ -54,7 +64,6 @@ public class NeatTipSettingsController : ManagementApiControllerBase
 
     /// <summary>
     /// Returns NeatTip helper text for all properties on the document's content type.
-    /// Triggers legacy migration when needed.
     /// </summary>
     [HttpGet("property-descriptions")]
     public async Task<ActionResult<NeatTipPropertyDescriptionsResponseModel>> GetPropertyDescriptions(
@@ -80,7 +89,7 @@ public class NeatTipSettingsController : ManagementApiControllerBase
         var properties = new List<NeatTipPropertyHelperTextModel>();
         properties.AddRange(await _helperTextResolver.LoadAllForContentTypeAsync(contentType));
 
-        foreach (var elementContentType in _contentTypeService.GetAll().Where(ct => ct.IsElement))
+        foreach (var elementContentType in await _referencedElementTypeResolver.GetReferencedElementTypesAsync(contentType))
         {
             properties.AddRange(await _helperTextResolver.LoadAllForContentTypeAsync(elementContentType));
         }
@@ -98,13 +107,17 @@ public class NeatTipSettingsController : ManagementApiControllerBase
 
     /// <summary>
     /// Updates a document-type property description (helper text).
-    /// Restricted with Umbraco's TreeAccessDocumentTypes policy — the same authority
-    /// required to edit document types in Settings.
+    /// Authorization is enforced via <see cref="INeatTipEditHelperTextAuthorizationService"/>
+    /// so the same rules apply as the client-visible <c>canEditHelperText</c> flag.
     /// </summary>
     [HttpPut("property-description")]
-    [Authorize(Policy = AuthorizationPolicies.TreeAccessDocumentTypes)]
     public async Task<IActionResult> PutPropertyDescription([FromBody] NeatTipPropertyDescriptionUpdateModel model)
     {
+        if (!await _editHelperTextAuthorization.CanEditHelperTextAsync(User))
+        {
+            return Forbid();
+        }
+
         if (model.DocumentKey == Guid.Empty)
         {
             return BadRequest("DocumentKey is required.");

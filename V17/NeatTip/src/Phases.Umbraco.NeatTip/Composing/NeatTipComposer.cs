@@ -15,6 +15,8 @@ public class NeatTipComposer : IComposer
             builder.Config.GetSection(NeatTipSettings.SectionName));
 
         builder.Services.AddSingleton<INeatTipSettingsService, NeatTipSettingsService>();
+        builder.Services.AddSingleton<IReferencedElementTypeResolver, ReferencedElementTypeResolver>();
+        builder.Services.AddSingleton<INeatTipEditHelperTextAuthorizationService, NeatTipEditHelperTextAuthorizationService>();
         builder.Services.AddSingleton<IHelperTextKeyValueRepository, HelperTextKeyValueRepository>();
         builder.Services.AddSingleton<IHelperTextResolver, HelperTextResolver>();
     }

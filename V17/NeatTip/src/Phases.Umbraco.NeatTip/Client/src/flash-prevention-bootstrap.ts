@@ -4,11 +4,13 @@ import {
 } from "./utils/flash-description.util.js";
 import { neattipRuntime } from "./config/neattip-runtime.js";
 import { collectPropertyLayouts } from "./utils/shadow-dom.util.js";
-import { ShadowMutationObserver } from "./utils/shadow-observer.util.js";
+import { subscribeDomMutations } from "./utils/dom-mutation-hub.js";
+import { subscribeRouteChanges } from "./services/route-change.service.js";
 
-let installed = false;
-let shadowObserver: ShadowMutationObserver | undefined;
+let active = false;
 let lastLocation = "";
+let unsubscribeDomMutations: (() => void) | undefined;
+let unsubscribeRouteChanges: (() => void) | undefined;
 
 function getLocation(): string {
   return `${window.location.pathname}${window.location.search}${window.location.hash}`;
@@ -36,31 +38,37 @@ function checkRouteChange(): void {
   handleLayouts(true);
 }
 
-function install(): void {
-  if (installed || typeof document === "undefined") {
+function onDomMutation(): void {
+  checkRouteChange();
+  handleLayouts();
+}
+
+/** Start flash-prevention observers only while NeatTip is enabled. */
+export function startFlashPreventionBootstrap(): void {
+  if (active || typeof document === "undefined") {
     return;
   }
 
-  installed = true;
+  active = true;
   lastLocation = getLocation();
 
   if (isFlashPreventionContext()) {
     handleLayouts(true);
   }
 
-  shadowObserver = new ShadowMutationObserver(() => {
-    checkRouteChange();
-    handleLayouts();
-  });
-
-  shadowObserver.start(document.documentElement);
-  window.setInterval(checkRouteChange, 200);
+  unsubscribeDomMutations = subscribeDomMutations(onDomMutation);
+  unsubscribeRouteChanges = subscribeRouteChanges(checkRouteChange);
 }
 
-if (typeof document !== "undefined") {
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", install, { once: true });
-  } else {
-    install();
+/** Tear down flash-prevention observers when NeatTip is disabled or unloaded. */
+export function stopFlashPreventionBootstrap(): void {
+  if (!active) {
+    return;
   }
+
+  active = false;
+  unsubscribeDomMutations?.();
+  unsubscribeDomMutations = undefined;
+  unsubscribeRouteChanges?.();
+  unsubscribeRouteChanges = undefined;
 }

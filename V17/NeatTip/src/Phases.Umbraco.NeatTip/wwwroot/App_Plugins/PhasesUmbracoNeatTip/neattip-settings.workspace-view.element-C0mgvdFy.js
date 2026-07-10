@@ -1,7 +1,6 @@
 import { UmbLitElement as b } from "@umbraco-cms/backoffice/lit-element";
 import { html as h, state as r, customElement as f } from "@umbraco-cms/backoffice/external/lit";
-import { H as y } from "./bundle.manifests-C2kQPsY2.js";
-import { l as w, s as N } from "./neattip-settings-api.service-BV0Kt6oB.js";
+import { l as y, s as w, d as N } from "./neattip-settings-api.service-IaGuUkdg.js";
 var S = Object.defineProperty, L = Object.getOwnPropertyDescriptor, d = (t) => {
   throw TypeError(t);
 }, a = (t, e, i, l) => {
@@ -73,7 +72,7 @@ o = /* @__PURE__ */ new WeakSet();
 _ = async function() {
   this._loading = !0, this._error = "";
   try {
-    const t = await w();
+    const t = await y();
     this._enabled = t.enabled, this._minLength = t.minLength;
   } catch {
     this._error = "Could not load NeatTip settings.";
@@ -96,8 +95,8 @@ v = async function() {
     minLength: this._minLength
   };
   try {
-    const e = await N(t);
-    this._enabled = e.enabled, this._minLength = e.minLength, this._success = "Settings saved.", y();
+    const e = await w(t);
+    this._enabled = e.enabled, this._minLength = e.minLength, this._success = "Settings saved.", N();
   } catch {
     this._error = "Could not save NeatTip settings.";
   } finally {
@@ -125,9 +124,9 @@ a([
 s = a([
   f("phases-neattip-settings-workspace-view")
 ], s);
-const P = s;
+const x = s;
 export {
   s as PhasesNeatTipSettingsWorkspaceViewElement,
-  P as default
+  x as default
 };
-//# sourceMappingURL=neattip-settings.workspace-view.element-8AAzHEB4.js.map
+//# sourceMappingURL=neattip-settings.workspace-view.element-C0mgvdFy.js.map
