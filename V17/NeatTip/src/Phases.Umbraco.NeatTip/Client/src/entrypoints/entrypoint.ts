@@ -17,6 +17,10 @@ import {
   startFlashPreventionBootstrap,
   stopFlashPreventionBootstrap,
 } from "../flash-prevention-bootstrap.js";
+import {
+  markNeatTipPackageLoaded,
+  setNeatTipTooltipServiceActive,
+} from "../settings/neattip-diagnostics.js";
 
 let hostElement: UmbElement | undefined;
 let neatTipService: NeatTipService | undefined;
@@ -31,6 +35,7 @@ function removeStyles(): void {
 
 function startNeatTip(): void {
   if (!neattipRuntime.enabled || !hostElement) {
+    setNeatTipTooltipServiceActive(false);
     return;
   }
 
@@ -40,11 +45,14 @@ function startNeatTip(): void {
   } else {
     neatTipService.syncPermissionsFromRuntime();
   }
+
+  setNeatTipTooltipServiceActive(true);
 }
 
 function stopNeatTip(): void {
   neatTipService?.stop();
   neatTipService = undefined;
+  setNeatTipTooltipServiceActive(false);
 }
 
 async function applyRuntimeSettings(): Promise<void> {
@@ -84,6 +92,7 @@ const onSettingsChanged = (): void => {
 
 export const onInit: UmbEntryPointOnInit = (host) => {
   hostElement = host;
+  markNeatTipPackageLoaded();
   injectStyles();
   void applyRuntimeSettings();
   window.addEventListener(NEATTIP_SETTINGS_CHANGED_EVENT, onSettingsChanged);
