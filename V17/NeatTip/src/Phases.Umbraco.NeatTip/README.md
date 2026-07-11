@@ -20,7 +20,7 @@ NeatTip is a backoffice-only UX package for Umbraco 17. It replaces long inline 
 | | |
 |---|---|
 | **NuGet ID** | `Phases.Umbraco.NeatTip` |
-| **Version** | 2.0.0 |
+| **Version** | 2.0.1 |
 | **Umbraco** | 17.x (depends on Umbraco.Cms 17.2.2) |
 | **.NET** | net10.0 |
 | **Category** | Editor Tools |

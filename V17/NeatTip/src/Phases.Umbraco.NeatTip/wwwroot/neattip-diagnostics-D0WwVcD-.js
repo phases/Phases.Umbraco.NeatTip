@@ -1,5 +1,5 @@
 import { umbHttpClient as d } from "@umbraco-cms/backoffice/http-client";
-import { b as f, e as h } from "./bundle.manifests-CTV0Iwlo.js";
+import { b as f, e as h } from "./bundle.manifests-DAy8TEG3.js";
 import { UmbControllerBase as S } from "@umbraco-cms/backoffice/class-api";
 import { UMB_CURRENT_USER_CONTEXT as E } from "@umbraco-cms/backoffice/current-user";
 const b = {
@@ -218,4 +218,4 @@ export {
   n,
   I as s
 };
-//# sourceMappingURL=neattip-diagnostics-QgR-BwEz.js.map
+//# sourceMappingURL=neattip-diagnostics-D0WwVcD-.js.map

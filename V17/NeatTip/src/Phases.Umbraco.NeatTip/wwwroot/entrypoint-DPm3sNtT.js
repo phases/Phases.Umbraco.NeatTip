@@ -1,5 +1,5 @@
-import { N as b, n as f, a as He, l as ce, s as mt, m as qe } from "./neattip-diagnostics-QgR-BwEz.js";
-import { N as Ue, a as Ke, b as le } from "./bundle.manifests-CTV0Iwlo.js";
+import { N as b, n as f, a as He, l as ce, s as mt, m as qe } from "./neattip-diagnostics-D0WwVcD-.js";
+import { N as Ue, a as Ke, b as le } from "./bundle.manifests-DAy8TEG3.js";
 import { umbHttpClient as pe } from "@umbraco-cms/backoffice/http-client";
 import { UmbControllerBase as Be } from "@umbraco-cms/backoffice/class-api";
 import { UMB_VARIANT_CONTEXT as Fe } from "@umbraco-cms/backoffice/variant";
@@ -2938,4 +2938,4 @@ export {
   Kn as onInit,
   Bn as onUnload
 };
-//# sourceMappingURL=entrypoint-vpqC2zRd.js.map
+//# sourceMappingURL=entrypoint-DPm3sNtT.js.map

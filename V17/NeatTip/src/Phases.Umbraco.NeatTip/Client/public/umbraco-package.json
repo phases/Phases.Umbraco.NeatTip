@@ -1,7 +1,7 @@
 {
   "id": "Phases.Umbraco.NeatTip",
   "name": "Phases.Umbraco.NeatTip",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "allowTelemetry": false,
   "extensions": [
     {

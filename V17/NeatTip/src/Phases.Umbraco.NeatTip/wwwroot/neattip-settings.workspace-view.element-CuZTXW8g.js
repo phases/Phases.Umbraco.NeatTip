@@ -3,8 +3,8 @@ import { UMB_NOTIFICATION_CONTEXT as z } from "@umbraco-cms/backoffice/notificat
 import { UmbTextStyles as k } from "@umbraco-cms/backoffice/style";
 import { UmbValidationContext as E, umbBindToValidation as P } from "@umbraco-cms/backoffice/validation";
 import { html as l, nothing as I, css as D, state as p, customElement as A } from "@umbraco-cms/backoffice/external/lit";
-import { g as M, l as F, b as O, d as U } from "./neattip-diagnostics-QgR-BwEz.js";
-import { c as b, d as V } from "./bundle.manifests-CTV0Iwlo.js";
+import { g as M, l as F, b as O, d as U } from "./neattip-diagnostics-D0WwVcD-.js";
+import { c as b, d as V } from "./bundle.manifests-DAy8TEG3.js";
 var W = Object.defineProperty, G = Object.getOwnPropertyDescriptor, y = (t) => {
   throw TypeError(t);
 }, r = (t, e, i, d) => {
@@ -328,4 +328,4 @@ export {
   n as PhasesNeatTipSettingsWorkspaceViewElement,
   Q as default
 };
-//# sourceMappingURL=neattip-settings.workspace-view.element-Du4waMDc.js.map
+//# sourceMappingURL=neattip-settings.workspace-view.element-CuZTXW8g.js.map

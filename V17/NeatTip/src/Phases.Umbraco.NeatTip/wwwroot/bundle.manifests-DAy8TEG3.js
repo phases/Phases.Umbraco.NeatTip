@@ -3,9 +3,9 @@ const a = [
     name: "Phases Umbraco Neat Tip Entrypoint",
     alias: "Phases.Umbraco.NeatTip.Entrypoint",
     type: "backofficeEntryPoint",
-    js: () => import("./entrypoint-vpqC2zRd.js")
+    js: () => import("./entrypoint-DPm3sNtT.js")
   }
-], i = "phases-neattip-settings-changed", p = "NeatTip", T = "2.0.0", t = "phases-neattip-settings", e = "Phases.Workspace.NeatTipSettings", o = "/umbraco/management/api/v1/neattip/settings", c = "/umbraco/management/api/v1/neattip/settings/property-description", m = "/umbraco/management/api/v1/neattip/settings/property-descriptions", s = "Umb.Condition.WorkspaceAlias", n = [
+], i = "phases-neattip-settings-changed", p = "NeatTip", T = "2.0.1", t = "phases-neattip-settings", e = "Phases.Workspace.NeatTipSettings", o = "/umbraco/management/api/v1/neattip/settings", c = "/umbraco/management/api/v1/neattip/settings/property-description", m = "/umbraco/management/api/v1/neattip/settings/property-descriptions", s = "Umb.Condition.WorkspaceAlias", n = [
   {
     type: "menuItem",
     alias: "Phases.MenuItem.NeatTipSettings",
@@ -32,7 +32,7 @@ const a = [
     type: "workspaceView",
     alias: "Phases.WorkspaceView.NeatTipSettings",
     name: "NeatTip Settings Workspace View",
-    element: () => import("./neattip-settings.workspace-view.element-Du4waMDc.js"),
+    element: () => import("./neattip-settings.workspace-view.element-CuZTXW8g.js"),
     weight: 100,
     meta: {
       label: "Settings",
@@ -59,4 +59,4 @@ export {
   o as e,
   N as m
 };
-//# sourceMappingURL=bundle.manifests-CTV0Iwlo.js.map
+//# sourceMappingURL=bundle.manifests-DAy8TEG3.js.map
