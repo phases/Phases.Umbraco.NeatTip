@@ -12,7 +12,7 @@
     <Product>Phases.Umbraco.NeatTip</Product>
     <Title>Phases.Umbraco.NeatTip</Title>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Version>1.0.35</Version>
+    <Version>1.0.6.17</Version>
     <Authors>midhun_roy</Authors>
     <Company>Phases</Company>
     <PackageTags>umbraco-marketplace;umbraco;umbraco-v17</PackageTags>
