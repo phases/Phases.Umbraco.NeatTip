@@ -5,7 +5,7 @@ const a = [
     type: "backofficeEntryPoint",
     js: () => import("./entrypoint-vpqC2zRd.js")
   }
-], i = "phases-neattip-settings-changed", p = "NeatTip", T = "1.0.2", t = "phases-neattip-settings", e = "Phases.Workspace.NeatTipSettings", o = "/umbraco/management/api/v1/neattip/settings", c = "/umbraco/management/api/v1/neattip/settings/property-description", m = "/umbraco/management/api/v1/neattip/settings/property-descriptions", s = "Umb.Condition.WorkspaceAlias", n = [
+], i = "phases-neattip-settings-changed", p = "NeatTip", T = "2.0.0", t = "phases-neattip-settings", e = "Phases.Workspace.NeatTipSettings", o = "/umbraco/management/api/v1/neattip/settings", c = "/umbraco/management/api/v1/neattip/settings/property-description", m = "/umbraco/management/api/v1/neattip/settings/property-descriptions", s = "Umb.Condition.WorkspaceAlias", n = [
   {
     type: "menuItem",
     alias: "Phases.MenuItem.NeatTipSettings",
